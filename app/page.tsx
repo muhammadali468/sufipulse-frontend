@@ -1,65 +1,827 @@
-import Image from "next/image";
+// import { Music, Users, Shield, TrendingUp, Calendar, ArrowRight, Play, BookOpen, Clock, FileText, Headphones, Globe, Pen, Mic, Disc3, Feather, ChevronLeft, ChevronRight } from 'lucide-react';
+// import { Hero } from './components/primitives/Hero';
+// import { Card } from './components/primitives/Card';
+// import { PrimaryButton } from './components/primitives/PrimaryButton';
+// import { Badge } from './components/primitives/Badge';
+// import { Section } from './components/layout/Section';
+// import { PageContainer } from './components/layout/PageContainer';
+// import { Layout } from './components/layout/Layout';
+// // import { useReleases } from './hooks/useReleases';
+// import { useState, useEffect } from 'react';
+// import Link from 'next/link';
+// // import { supabase } from './lib/supabase';
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+import { Layout } from "./components/layout/Layout";
+
+// interface FeaturedArticle {
+//   id: string;
+//   title: string;
+//   slug: string;
+//   excerpt: string;
+//   category: string;
+//   author_name: string;
+//   reading_time_minutes: number;
+//   published_at: string;
+// }
+
+// interface Publication {
+//   id: string;
+//   type: 'music' | 'literary';
+//   title: string;
+//   slug: string;
+//   published_at: string;
+//   excerpt?: string;
+//   artwork_url?: string;
+//   youtube_video_id?: string;
+//   description?: string;
+// }
+
+// export function Home() {
+//   const { releases, loading } = useReleases();
+//   const featuredReleases = releases
+//     .filter((r:any) => r.youtube_video_id && r.source === 'youtube_legacy')
+//     .slice(0, 6);
+//   const [currentSlide, setCurrentSlide] = useState(0);
+//   const [featuredArticles, setFeaturedArticles] = useState<FeaturedArticle[]>([]);
+//   const [articlesLoading, setArticlesLoading] = useState(true);
+//   const [latestPublications, setLatestPublications] = useState<Publication[]>([]);
+//   const [pubsLoading, setPubsLoading] = useState(true);
+
+//   const nextSlide = () => {
+//     setCurrentSlide((prev) => (prev + 1) % featuredReleases.length);
+//   };
+
+//   const prevSlide = () => {
+//     setCurrentSlide((prev) => (prev - 1 + featuredReleases.length) % featuredReleases.length);
+//   };
+
+//   // useEffect(() => {
+//   //   fetchFeaturedArticles();
+//   //   fetchLatestPublications();
+//   // }, []);
+
+//   // const fetchFeaturedArticles = async () => {
+//   //   try {
+//   //     const { data, error } = await supabase
+//   //       .from('literary_articles')
+//   //       .select('id, title, slug, excerpt, category, author_name, reading_time_minutes, published_at')
+//   //       .eq('publication_status', 'published')
+//   //       .eq('featured', true)
+//   //       .order('published_at', { ascending: false })
+//   //       .limit(3);
+
+//   //     if (error) throw error;
+//   //     setFeaturedArticles(data || []);
+//   //   } catch (error) {
+//   //     console.error('Error fetching featured articles:', error);
+//   //   } finally {
+//   //     setArticlesLoading(false);
+//   //   }
+//   // };
+
+//   // const fetchLatestPublications = async () => {
+//   //   try {
+//   //     const { data: musicData } = await supabase
+//   //       .from('releases')
+//   //       .select('id, release_title, slug, release_date, description, artwork_url, youtube_video_id')
+//   //       .eq('publication_gate', 'public')
+//   //       .order('release_date', { ascending: false })
+//   //       .limit(2);
+
+//   //     const { data: articleData } = await supabase
+//   //       .from('literary_articles')
+//   //       .select('id, title, slug, published_at, excerpt')
+//   //       .eq('publication_status', 'published')
+//   //       .order('published_at', { ascending: false })
+//   //       .limit(1);
+
+//   //     const music: Publication[] = (musicData || []).map(r => ({
+//   //       id: r.id,
+//   //       type: 'music' as const,
+//   //       title: r.release_title,
+//   //       slug: r.slug,
+//   //       published_at: r.release_date,
+//   //       description: r.description,
+//   //       artwork_url: r.artwork_url,
+//   //       youtube_video_id: r.youtube_video_id
+//   //     }));
+
+//   //     const articles: Publication[] = (articleData || []).map(a => ({
+//   //       id: a.id,
+//   //       type: 'literary' as const,
+//   //       title: a.title,
+//   //       slug: a.slug,
+//   //       published_at: a.published_at,
+//   //       excerpt: a.excerpt
+//   //     }));
+
+//   //     const combined = [...music, ...articles].sort((a, b) =>
+//   //       new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+//   //     ).slice(0, 3);
+
+//   //     setLatestPublications(combined);
+//   //   } catch (error) {
+//   //     console.error('Error fetching latest publications:', error);
+//   //   } finally {
+//   //     setPubsLoading(false);
+//   //   }
+//   // };
+
+//   const formatDate = (dateString: string) => {
+//     return new Date(dateString).toLocaleDateString('en-US', {
+//       year: 'numeric',
+//       month: 'long',
+//       day: 'numeric'
+//     });
+//   };
+
+//   return (
+//     <Layout>
+//       <Section background="midnight" spacing="spacious">
+//         <PageContainer>
+//           <div className="max-w-5xl mx-auto text-center py-20">
+//             <div className="mb-6">
+//               <span className="inline-block px-4 py-1.5 border border-[var(--color-gold)]/30 rounded-full text-[var(--text-sm)] text-[var(--color-gold)] uppercase tracking-wider font-medium">
+//                 Est. 2024 — Registered Institution
+//               </span>
+//             </div>
+
+//             <h1 className="text-[var(--text-4xl)] md:text-[64px] font-bold text-[var(--color-text-primary)] mb-6 leading-[1.1] tracking-tight">
+//               The Institute for Sacred<br />Transmission & Economics
+//             </h1>
+
+//             <p className="text-[var(--text-xl)] text-[var(--color-text-secondary)] max-w-3xl mx-auto mb-10 leading-[var(--leading-relaxed)] font-light">
+//               A formally structured organization governing the creation, distribution, and economic stewardship of sacred kalam through multi-stakeholder oversight and transparent revenue systems.
+//             </p>
+
+//             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+//               <Link href="/releases">
+//                 <PrimaryButton variant="primary" size="large">
+//                   View Registry
+//                 </PrimaryButton>
+//               </Link>
+//               <Link href="/governance">
+//                 <PrimaryButton variant="outline" size="large">
+//                   Governance Framework
+//                 </PrimaryButton>
+//               </Link>
+//             </div>
+
+//             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-12 border-t border-[var(--color-text-tertiary)]/20">
+//               <div>
+//                 <div className="text-[var(--text-3xl)] font-bold text-[var(--color-gold)] mb-1">12+</div>
+//                 <div className="text-[var(--text-sm)] text-[var(--color-text-tertiary)] uppercase tracking-wide">Releases</div>
+//               </div>
+//               <div>
+//                 <div className="text-[var(--text-3xl)] font-bold text-[var(--color-gold)] mb-1">5</div>
+//                 <div className="text-[var(--text-sm)] text-[var(--color-text-tertiary)] uppercase tracking-wide">Active Writers</div>
+//               </div>
+//               <div>
+//                 <div className="text-[var(--text-3xl)] font-bold text-[var(--color-gold)] mb-1">100%</div>
+//                 <div className="text-[var(--text-sm)] text-[var(--color-text-tertiary)] uppercase tracking-wide">Transparency</div>
+//               </div>
+//               <div>
+//                 <div className="text-[var(--text-3xl)] font-bold text-[var(--color-gold)] mb-1">4</div>
+//                 <div className="text-[var(--text-sm)] text-[var(--color-text-tertiary)] uppercase tracking-wide">Institutions</div>
+//               </div>
+//             </div>
+//           </div>
+//         </PageContainer>
+//       </Section>
+
+//       <Section background="slate" spacing="normal">
+//         <PageContainer>
+//           <div className="max-w-6xl mx-auto">
+//             <div className="mb-16">
+//               <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
+//                 Institutional Framework
+//               </div>
+//               <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
+//                 Governed Structure for Sacred Content
+//               </h2>
+//               <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
+//                 SufiPulse operates under a comprehensive governance system with formal oversight mechanisms, transparent economic protocols, and institutional accountability standards.
+//               </p>
+//             </div>
+
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+//               <div className="border border-[var(--color-text-tertiary)]/20 bg-[var(--color-midnight)]/30 p-8 rounded-lg">
+//                 <div className="w-12 h-12 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded flex items-center justify-center mb-4">
+//                   <Shield className="w-6 h-6 text-[var(--color-gold)]" />
+//                 </div>
+//                 <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)] mb-3">
+//                   Multi-Stakeholder Governance
+//                 </h3>
+//                 <p className="text-[var(--text-base)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-4">
+//                   Decision-making authority distributed across Diwan-e-Amanat, Majlis-e-Nazr, and specialized oversight committees with documented accountability trails.
+//                 </p>
+//                 <Link href="/governance" className="text-[var(--text-sm)] text-[var(--color-gold)] hover:underline font-medium">
+//                   View Framework →
+//                 </Link>
+//               </div>
+
+//               <div className="border border-[var(--color-text-tertiary)]/20 bg-[var(--color-midnight)]/30 p-8 rounded-lg">
+//                 <div className="w-12 h-12 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded flex items-center justify-center mb-4">
+//                   <TrendingUp className="w-6 h-6 text-[var(--color-gold)]" />
+//                 </div>
+//                 <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)] mb-3">
+//                   Transparent Revenue Systems
+//                 </h3>
+//                 <p className="text-[var(--text-base)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-4">
+//                   All revenue streams tracked in real-time. Royalty agreements locked before production. Contributors receive quarterly statements with full audit trails.
+//                 </p>
+//                 <Link href="/governance/royalty-transparency" className="text-[var(--text-sm)] text-[var(--color-gold)] hover:underline font-medium">
+//                   View Transparency Reports →
+//                 </Link>
+//               </div>
+
+//               <div className="border border-[var(--color-text-tertiary)]/20 bg-[var(--color-midnight)]/30 p-8 rounded-lg">
+//                 <div className="w-12 h-12 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded flex items-center justify-center mb-4">
+//                   <Music className="w-6 h-6 text-[var(--color-gold)]" />
+//                 </div>
+//                 <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)] mb-3">
+//                   Content Integrity Standards
+//                 </h3>
+//                 <p className="text-[var(--text-base)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-4">
+//                   Every submission reviewed against established criteria. Release protocols ensure alignment with Sufi tradition and institutional quality benchmarks.
+//                 </p>
+//                 <Link href="/governance/release-protocol" className="text-[var(--text-sm)] text-[var(--color-gold)] hover:underline font-medium">
+//                   View Protocol →
+//                 </Link>
+//               </div>
+
+//               <div className="border border-[var(--color-text-tertiary)]/20 bg-[var(--color-midnight)]/30 p-8 rounded-lg">
+//                 <div className="w-12 h-12 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded flex items-center justify-center mb-4">
+//                   <Users className="w-6 h-6 text-[var(--color-gold)]" />
+//                 </div>
+//                 <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)] mb-3">
+//                   Contributor Rights Protection
+//                 </h3>
+//                 <p className="text-[var(--text-base)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-4">
+//                   Writers, vocalists, and producers retain intellectual property rights. Formal agreements govern all collaborations with institutional mediation available.
+//                 </p>
+//                 <Link href="/contributor-policy" className="text-[var(--text-sm)] text-[var(--color-gold)] hover:underline font-medium">
+//                   View Policy →
+//                 </Link>
+//               </div>
+//             </div>
+//           </div>
+//         </PageContainer>
+//       </Section>
+
+//       <Section background="midnight" spacing="normal">
+//         <PageContainer>
+//           <div className="max-w-6xl mx-auto">
+//             <div className="text-center mb-16">
+//               <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
+//                 Dual-Medium Architecture
+//               </div>
+//               <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
+//                 Two Channels of Sacred Transmission
+//               </h2>
+//             </div>
+
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+//               <div className="border-l-2 border-[var(--color-gold)] pl-8">
+//                 <div className="mb-6">
+//                   <Headphones className="w-10 h-10 text-[var(--color-gold)] mb-4" />
+//                   <h3 className="text-[var(--text-2xl)] font-bold text-[var(--color-text-primary)] mb-2">
+//                     Musical Registry
+//                   </h3>
+//                   <div className="text-[var(--text-sm)] text-[var(--color-gold)] uppercase tracking-wider mb-4">
+//                     Studio Production Division
+//                   </div>
+//                 </div>
+//                 <p className="text-[var(--text-base)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-6">
+//                   Vocal performances, instrumental arrangements, and audio engineering governed by production oversight protocols. All releases pass through multi-stage approval before public distribution.
+//                 </p>
+//                 <div className="space-y-3 mb-6">
+//                   <div className="flex items-start gap-3">
+//                     <div className="w-1.5 h-1.5 bg-[var(--color-gold)] rounded-full mt-2"></div>
+//                     <span className="text-[var(--text-sm)] text-[var(--color-text-secondary)]">Writer-vocalist-producer coordination system</span>
+//                   </div>
+//                   <div className="flex items-start gap-3">
+//                     <div className="w-1.5 h-1.5 bg-[var(--color-gold)] rounded-full mt-2"></div>
+//                     <span className="text-[var(--text-sm)] text-[var(--color-text-secondary)]">Pre-production royalty agreement locking</span>
+//                   </div>
+//                   <div className="flex items-start gap-3">
+//                     <div className="w-1.5 h-1.5 bg-[var(--color-gold)] rounded-full mt-2"></div>
+//                     <span className="text-[var(--text-sm)] text-[var(--color-text-secondary)]">Studio session documentation and archiving</span>
+//                   </div>
+//                 </div>
+//                 <Link href="/releases">
+//                   <PrimaryButton variant="secondary" size="medium">
+//                     View Musical Registry
+//                   </PrimaryButton>
+//                 </Link>
+//               </div>
+
+//               <div className="border-l-2 border-[var(--color-gold)] pl-8">
+//                 <div className="mb-6">
+//                   <FileText className="w-10 h-10 text-[var(--color-gold)] mb-4" />
+//                   <h3 className="text-[var(--text-2xl)] font-bold text-[var(--color-text-primary)] mb-2">
+//                     Literary Division
+//                   </h3>
+//                   <div className="text-[var(--text-sm)] text-[var(--color-gold)] uppercase tracking-wider mb-4">
+//                     Editorial & Publishing Council
+//                   </div>
+//                 </div>
+//                 <p className="text-[var(--text-base)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-6">
+//                   Essays, scholarly reflections, and written kalam published under editorial oversight. Peer-reviewed content ensuring intellectual rigor and spiritual alignment.
+//                 </p>
+//                 <div className="space-y-3 mb-6">
+//                   <div className="flex items-start gap-3">
+//                     <div className="w-1.5 h-1.5 bg-[var(--color-gold)] rounded-full mt-2"></div>
+//                     <span className="text-[var(--text-sm)] text-[var(--color-text-secondary)]">Contributor credential verification system</span>
+//                   </div>
+//                   <div className="flex items-start gap-3">
+//                     <div className="w-1.5 h-1.5 bg-[var(--color-gold)] rounded-full mt-2"></div>
+//                     <span className="text-[var(--text-sm)] text-[var(--color-text-secondary)]">Multi-stage editorial review process</span>
+//                   </div>
+//                   <div className="flex items-start gap-3">
+//                     <div className="w-1.5 h-1.5 bg-[var(--color-gold)] rounded-full mt-2"></div>
+//                     <span className="text-[var(--text-sm)] text-[var(--color-text-secondary)]">Intellectual property protection protocols</span>
+//                   </div>
+//                 </div>
+//                 <Link href="/literary-journal">
+//                   <PrimaryButton variant="secondary" size="medium">
+//                     View Literary Division
+//                   </PrimaryButton>
+//                 </Link>
+//               </div>
+//             </div>
+//           </div>
+//         </PageContainer>
+//       </Section>
+
+//       <Section background="slate" spacing="normal">
+//         <PageContainer>
+//           <div className="max-w-6xl mx-auto">
+//             <div className="mb-16">
+//               <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
+//                 Institutional Workflow
+//               </div>
+//               <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
+//                 Production Pipeline: Submission to Distribution
+//               </h2>
+//               <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
+//                 A standardized, multi-stage approval process governs all content from initial submission through public release.
+//               </p>
+//             </div>
+
+//             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+//               <div>
+//                 <div className="flex items-center gap-4 mb-4">
+//                   <div className="w-16 h-16 bg-[var(--color-gold)] rounded flex items-center justify-center flex-shrink-0">
+//                     <span className="text-[28px] font-bold text-[var(--color-midnight)]">01</span>
+//                   </div>
+//                   <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)]">
+//                     Submission & Review
+//                   </h3>
+//                 </div>
+//                 <div className="border-l-2 border-[var(--color-text-tertiary)]/30 pl-6 ml-8 pb-6">
+//                   <p className="text-[var(--text-base)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-4">
+//                     Writers submit kalam through formal application system. Content undergoes committee review for alignment with institutional standards and Sufi tradition.
+//                   </p>
+//                   <div className="text-[var(--text-sm)] text-[var(--color-text-tertiary)]">
+//                     <strong className="text-[var(--color-text-primary)]">Review Period:</strong> 14-21 days
+//                   </div>
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <div className="flex items-center gap-4 mb-4">
+//                   <div className="w-16 h-16 bg-[var(--color-gold)] rounded flex items-center justify-center flex-shrink-0">
+//                     <span className="text-[28px] font-bold text-[var(--color-midnight)]">02</span>
+//                   </div>
+//                   <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)]">
+//                     Assignment & Production
+//                   </h3>
+//                 </div>
+//                 <div className="border-l-2 border-[var(--color-text-tertiary)]/30 pl-6 ml-8 pb-6">
+//                   <p className="text-[var(--text-base)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-4">
+//                     Approved content assigned to vocalists and producers. Royalty agreements finalized and locked. Studio sessions scheduled under oversight protocols.
+//                   </p>
+//                   <div className="text-[var(--text-sm)] text-[var(--color-text-tertiary)]">
+//                     <strong className="text-[var(--color-text-primary)]">Production Phase:</strong> 4-8 weeks
+//                   </div>
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <div className="flex items-center gap-4 mb-4">
+//                   <div className="w-16 h-16 bg-[var(--color-gold)] rounded flex items-center justify-center flex-shrink-0">
+//                     <span className="text-[28px] font-bold text-[var(--color-midnight)]">03</span>
+//                   </div>
+//                   <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)]">
+//                     Release & Revenue
+//                   </h3>
+//                 </div>
+//                 <div className="border-l-2 border-[var(--color-text-tertiary)]/30 pl-6 ml-8 pb-6">
+//                   <p className="text-[var(--text-base)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-4">
+//                     Final approval from governance body. Public distribution across platforms. Revenue tracking initiated with transparent reporting to all contributors.
+//                   </p>
+//                   <div className="text-[var(--text-sm)] text-[var(--color-text-tertiary)]">
+//                     <strong className="text-[var(--color-text-primary)]">Reporting:</strong> Quarterly statements
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </PageContainer>
+//       </Section>
+
+//       <Section background="midnight" spacing="normal">
+//         <PageContainer>
+//           <div className="max-w-6xl mx-auto mb-12">
+//             <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
+//               Registry Highlights
+//             </div>
+//             <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
+//               Recent Releases
+//             </h2>
+//             <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-2xl leading-[var(--leading-relaxed)]">
+//               Curated selections from the institutional registry of approved and distributed works.
+//             </p>
+//           </div>
+
+//           {loading ? (
+//             <div className="flex items-center justify-center py-12">
+//               <div className="text-[var(--color-text-secondary)]">Loading featured releases...</div>
+//             </div>
+//           ) : featuredReleases.length === 0 ? (
+//             <div className="flex items-center justify-center py-12">
+//               <div className="text-center">
+//                 <Music className="w-16 h-16 text-[var(--color-text-tertiary)] mx-auto mb-4" />
+//                 <div className="text-[var(--color-text-secondary)]">No featured releases available yet</div>
+//               </div>
+//             </div>
+//           ) : (
+//             <>
+//               <div className="relative max-w-4xl mx-auto">
+//                 {featuredReleases.length > 0 && (
+//                   <Link
+//                     href={`/release/${featuredReleases[currentSlide].slug}`}
+//                     className="group block"
+//                   >
+//                     <div className="relative">
+//                       {featuredReleases[currentSlide].youtube_video_id ? (
+//                         <div className="relative w-full overflow-hidden rounded-lg shadow-2xl" style={{ aspectRatio: '16/9' }}>
+//                           <img
+//                             src={
+//                               featuredReleases[currentSlide].thumbnail_url ||
+//                               `https://i.ytimg.com/vi/${featuredReleases[currentSlide].youtube_video_id}/maxresdefault.jpg`
+//                             }
+//                             alt={featuredReleases[currentSlide].release_title}
+//                             className="w-full h-full object-cover bg-black group-hover:scale-[1.02] transition-transform duration-[var(--transition-base)]"
+//                             loading="lazy"
+//                             onError={(e) => {
+//                               const target = e.currentTarget;
+//                               const videoId = featuredReleases[currentSlide].youtube_video_id;
+//                               if (videoId) {
+//                                 if (target.src.includes('maxresdefault')) {
+//                                   target.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+//                                 } else if (target.src.includes('hqdefault')) {
+//                                   target.src = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+//                                 } else if (target.src.includes('mqdefault')) {
+//                                   target.src = `https://i.ytimg.com/vi/${videoId}/default.jpg`;
+//                                 }
+//                               }
+//                             }}
+//                           />
+//                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--transition-base)] flex items-center justify-center">
+//                             <div className="w-24 h-24 rounded-full bg-[var(--color-gold)] flex items-center justify-center transform scale-90 group-hover:scale-100 transition-transform duration-[var(--transition-base)]">
+//                               <Play className="w-12 h-12 text-[var(--color-midnight)] ml-1.5" fill="currentColor" />
+//                             </div>
+//                           </div>
+
+//                           <div className="absolute bottom-4 left-4 bg-black/80 px-3 py-1.5 rounded-md text-[var(--text-sm)] text-white/90">
+//                             {currentSlide + 1} / {featuredReleases.length}
+//                           </div>
+//                         </div>
+//                       ) : (
+//                         <div className="w-full bg-gradient-to-br from-[var(--color-midnight)] to-[var(--color-slate)] rounded-lg flex items-center justify-center" style={{ aspectRatio: '16/9' }}>
+//                           <Music className="w-16 h-16 text-[var(--color-text-tertiary)]" />
+//                         </div>
+//                       )}
+//                     </div>
+//                   </Link>
+//                 )}
+
+//                 {featuredReleases.length > 1 && (
+//                   <>
+//                     <button
+//                       onClick={(e) => {
+//                         e.preventDefault();
+//                         prevSlide();
+//                       }}
+//                       className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 bg-[var(--color-slate)] hover:bg-[var(--color-gold)] border border-[var(--color-border)] hover:border-[var(--color-gold)] rounded-full flex items-center justify-center transition-all duration-300 group z-10"
+//                       aria-label="Previous release"
+//                     >
+//                       <ChevronLeft className="w-6 h-6 text-[var(--color-text-primary)] group-hover:text-[var(--color-midnight)]" />
+//                     </button>
+//                     <button
+//                       onClick={(e) => {
+//                         e.preventDefault();
+//                         nextSlide();
+//                       }}
+//                       className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-12 h-12 bg-[var(--color-slate)] hover:bg-[var(--color-gold)] border border-[var(--color-border)] hover:border-[var(--color-gold)] rounded-full flex items-center justify-center transition-all duration-300 group z-10"
+//                       aria-label="Next release"
+//                     >
+//                       <ChevronRight className="w-6 h-6 text-[var(--color-text-primary)] group-hover:text-[var(--color-midnight)]" />
+//                     </button>
+//                   </>
+//                 )}
+//               </div>
+
+//               <div className="text-center mt-12">
+//                 <Link href="/releases">
+//                   <PrimaryButton variant="secondary" size="large">
+//                     View Full Registry
+//                   </PrimaryButton>
+//                 </Link>
+//               </div>
+//             </>
+//           )}
+//         </PageContainer>
+//       </Section>
+
+//       <Section background="slate" spacing="normal">
+//         <PageContainer>
+//           <div className="max-w-6xl mx-auto mb-12">
+//             <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
+//               Literary Journal
+//             </div>
+//             <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
+//               Ahl-e-Tahreer Archive
+//             </h2>
+//             <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-2xl leading-[var(--leading-relaxed)]">
+//               Essays, scholarly reflections, and written kalam from verified contributors under editorial oversight.
+//             </p>
+//           </div>
+
+//           {articlesLoading ? (
+//             <div className="flex items-center justify-center py-12">
+//               <div className="text-[var(--color-text-secondary)]">Loading featured articles...</div>
+//             </div>
+//           ) : featuredArticles.length === 0 ? (
+//             <div className="flex items-center justify-center py-12">
+//               <div className="text-center">
+//                 <FileText className="w-16 h-16 text-[var(--color-text-tertiary)] mx-auto mb-4" />
+//                 <div className="text-[var(--color-text-secondary)]">No featured articles available yet</div>
+//               </div>
+//             </div>
+//           ) : (
+//             <>
+//               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+//                 {featuredArticles.map((article) => (
+//                   <Link
+//                     key={article.id}
+//                     href={`/literary-journal/${article.slug}`}
+//                     className="group"
+//                   >
+//                     <Card hoverable>
+//                       <div className="relative">
+//                         <div className="aspect-[4/3] w-full mb-4 rounded overflow-hidden border border-[var(--color-text-tertiary)]/20 bg-gradient-to-br from-[var(--color-midnight)] to-[var(--color-slate)]">
+//                           <img
+//                             src="/image.png"
+//                             alt={article.title}
+//                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[var(--transition-base)]"
+//                           />
+//                         </div>
+
+//                         <div className="mb-2">
+//                           <span className="text-[10px] uppercase tracking-wider border border-neutral-700 px-2 py-0.5 text-neutral-400">
+//                             {article.category}
+//                           </span>
+//                         </div>
+
+//                         <h3 className="text-[var(--text-xl)] font-semibold text-[var(--color-text-primary)] mb-2 group-hover:text-[var(--color-gold)] transition-colors line-clamp-2">
+//                           {article.title}
+//                         </h3>
+
+//                         {article.excerpt && (
+//                           <p className="text-[var(--text-sm)] text-[var(--color-text-secondary)] mb-3 line-clamp-2 leading-[var(--leading-relaxed)]">
+//                             {article.excerpt}
+//                           </p>
+//                         )}
+
+//                         <div className="flex items-center justify-between text-[var(--text-xs)] text-[var(--color-text-tertiary)] pt-3 border-t border-[var(--color-text-tertiary)]/20">
+//                           <span>{article.author_name}</span>
+//                           {article.reading_time_minutes && (
+//                             <div className="flex items-center gap-1">
+//                               <Clock className="w-3 h-3" />
+//                               <span>{article.reading_time_minutes} min read</span>
+//                             </div>
+//                           )}
+//                         </div>
+//                       </div>
+//                     </Card>
+//                   </Link>
+//                 ))}
+//               </div>
+
+//               <div className="text-center mt-8">
+//                 <Link href="/literary-journal">
+//                   <PrimaryButton variant="secondary" size="large">
+//                     View Full Archive
+//                   </PrimaryButton>
+//                 </Link>
+//               </div>
+//             </>
+//           )}
+//         </PageContainer>
+//       </Section>
+
+//       <Section background="midnight" spacing="normal">
+//         <PageContainer>
+//           <div className="max-w-6xl mx-auto">
+//             <div className="mb-12">
+//               <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
+//                 Creative Ecosystem
+//               </div>
+//               <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
+//                 Creative Contributors
+//               </h2>
+//               <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
+//                 Join a community of verified writers, vocalists, producers, and literary contributors creating sacred content under institutional oversight.
+//               </p>
+//             </div>
+
+//             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+//               <div className="bg-[var(--color-slate)] p-6 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-gold)]/50 transition-colors group">
+//                 <div className="w-12 h-12 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded flex items-center justify-center mb-4">
+//                   <Pen className="w-6 h-6 text-[var(--color-gold)]" />
+//                 </div>
+//                 <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)] mb-2">
+//                   Writers
+//                 </h3>
+//                 <p className="text-[var(--text-sm)] text-[var(--color-gold)] mb-4 font-medium">
+//                   Ahl-e-Qalam
+//                 </p>
+//                 <p className="text-[var(--text-sm)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-6">
+//                   Submit original kalam for review and production assignment.
+//                 </p>
+//                 <Link
+//                   href="/writers#apply"
+//                   className="inline-flex items-center gap-2 text-[var(--text-sm)] text-[var(--color-gold)] hover:text-[var(--color-gold)]/80 font-semibold transition-colors group-hover:gap-3 duration-300"
+//                 >
+//                   Apply Now
+//                   <ArrowRight className="w-4 h-4" />
+//                 </Link>
+//               </div>
+
+//               <div className="bg-[var(--color-slate)] p-6 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-gold)]/50 transition-colors group">
+//                 <div className="w-12 h-12 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded flex items-center justify-center mb-4">
+//                   <Mic className="w-6 h-6 text-[var(--color-gold)]" />
+//                 </div>
+//                 <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)] mb-2">
+//                   Vocalists
+//                 </h3>
+//                 <p className="text-[var(--text-sm)] text-[var(--color-gold)] mb-4 font-medium">
+//                   Ahl-e-Sada
+//                 </p>
+//                 <p className="text-[var(--text-sm)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-6">
+//                   Perform sacred poetry with formal credit and royalty agreements.
+//                 </p>
+//                 <Link
+//                   href="/vocalists#apply"
+//                   className="inline-flex items-center gap-2 text-[var(--text-sm)] text-[var(--color-gold)] hover:text-[var(--color-gold)]/80 font-semibold transition-colors group-hover:gap-3 duration-300"
+//                 >
+//                   Apply Now
+//                   <ArrowRight className="w-4 h-4" />
+//                 </Link>
+//               </div>
+
+//               <div className="bg-[var(--color-slate)] p-6 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-gold)]/50 transition-colors group">
+//                 <div className="w-12 h-12 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded flex items-center justify-center mb-4">
+//                   <Disc3 className="w-6 h-6 text-[var(--color-gold)]" />
+//                 </div>
+//                 <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)] mb-2">
+//                   Producers
+//                 </h3>
+//                 <p className="text-[var(--text-sm)] text-[var(--color-gold)] mb-4 font-medium">
+//                   Ahl-e-Naghma
+//                 </p>
+//                 <p className="text-[var(--text-sm)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-6">
+//                   Create instrumental arrangements with transparent compensation.
+//                 </p>
+//                 <Link
+//                   href="/producers#apply"
+//                   className="inline-flex items-center gap-2 text-[var(--text-sm)] text-[var(--color-gold)] hover:text-[var(--color-gold)]/80 font-semibold transition-colors group-hover:gap-3 duration-300"
+//                 >
+//                   Apply Now
+//                   <ArrowRight className="w-4 h-4" />
+//                 </Link>
+//               </div>
+
+//               <div className="bg-[var(--color-slate)] p-6 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-gold)]/50 transition-colors group">
+//                 <div className="w-12 h-12 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded flex items-center justify-center mb-4">
+//                   <Feather className="w-6 h-6 text-[var(--color-gold)]" />
+//                 </div>
+//                 <h3 className="text-[var(--text-xl)] font-bold text-[var(--color-text-primary)] mb-2">
+//                   Literary Contributors
+//                 </h3>
+//                 <p className="text-[var(--text-sm)] text-[var(--color-gold)] mb-4 font-medium">
+//                   Ahl-e-Tahreer
+//                 </p>
+//                 <p className="text-[var(--text-sm)] text-[var(--color-text-secondary)] leading-[var(--leading-relaxed)] mb-6">
+//                   Publish essays and scholarly reflections under editorial review.
+//                 </p>
+//                 <Link
+//                   href="/literary-contributors#apply"
+//                   className="inline-flex items-center gap-2 text-[var(--text-sm)] text-[var(--color-gold)] hover:text-[var(--color-gold)]/80 font-semibold transition-colors group-hover:gap-3 duration-300"
+//                 >
+//                   Apply Now
+//                   <ArrowRight className="w-4 h-4" />
+//                 </Link>
+//               </div>
+//             </div>
+//           </div>
+//         </PageContainer>
+//       </Section>
+
+//       {!pubsLoading && latestPublications.length > 0 && (
+//         <Section background="slate" spacing="normal">
+//           <PageContainer>
+//             <div className="text-center mb-12">
+//               <Badge variant="gold">Latest Publications</Badge>
+//               <h2 className="text-[var(--text-3xl)] md:text-[var(--text-4xl)] font-semibold text-[var(--color-text-primary)] mt-4 mb-4 leading-[var(--leading-tight)]">
+//                 Recent Publications
+//               </h2>
+//             </div>
+
+//             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+//               {latestPublications.map((pub) => (
+//                 <Link
+//                   key={pub.id}
+//                   href={pub.type === 'music' ? `/release/${pub.slug}` : `/literary-journal/${pub.slug}`}
+//                   className="group block"
+//                 >
+//                   <Card hoverable>
+//                     {pub.type === 'music' && (pub.artwork_url || pub.youtube_video_id) ? (
+//                       <div className="aspect-square w-full overflow-hidden rounded mb-4">
+//                         <img
+//                           src={pub.artwork_url || `https://i.ytimg.com/vi/${pub.youtube_video_id}/hqdefault.jpg`}
+//                           alt={pub.title}
+//                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+//                           loading="lazy"
+//                         />
+//                       </div>
+//                     ) : (
+//                       <div className="aspect-square w-full bg-gradient-to-br from-[var(--color-midnight)] to-[var(--color-slate)] mb-4 rounded flex items-center justify-center">
+//                         {pub.type === 'music' ? (
+//                           <Music className="w-12 h-12 text-[var(--color-text-tertiary)]" />
+//                         ) : (
+//                           <BookOpen className="w-12 h-12 text-[var(--color-text-tertiary)]" />
+//                         )}
+//                       </div>
+//                     )}
+
+//                     <div className="mb-2">
+//                       <span className="text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-wider">
+//                         {pub.type === 'music' ? 'Studio Release' : 'Literary'}
+//                       </span>
+//                     </div>
+
+//                     <h3 className="text-[var(--text-xl)] font-semibold text-[var(--color-text-primary)] mb-2 group-hover:text-[var(--color-gold)] transition-colors line-clamp-2">
+//                       {pub.title}
+//                     </h3>
+
+//                     {(pub.description || pub.excerpt) && (
+//                       <p className="text-[var(--text-sm)] text-[var(--color-text-secondary)] mb-3 line-clamp-2">
+//                         {pub.description || pub.excerpt}
+//                       </p>
+//                     )}
+
+//                     <div className="flex items-center gap-2 text-[var(--text-sm)] text-[var(--color-text-tertiary)]">
+//                       <Calendar className="w-4 h-4" />
+//                       <span>{formatDate(pub.published_at)}</span>
+//                     </div>
+//                   </Card>
+//                 </Link>
+//               ))}
+//             </div>
+
+//             <div className="text-center mt-8">
+//               <Link href="/releases">
+//                 <PrimaryButton variant="secondary" size="large">
+//                   Browse All Publications
+//                 </PrimaryButton>
+//               </Link>
+//             </div>
+//           </PageContainer>
+//         </Section>
+//       )}
+
+//     </Layout>
+//   );
+// }
+
+export default function Home(){
+  return(
+    <Layout>
+      Home
+    </Layout>
+  )
 }
