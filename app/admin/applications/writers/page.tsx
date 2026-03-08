@@ -412,17 +412,17 @@ export default function AdminWriterApplications() {
                                                         )}
                                                     </td>
                                                     <td className="text-right">
-                                                        {/* <button
+                                                        <button
                                                             onClick={() => {
                                                                 setSelectedApp(app);
-                                                                setAdminNotes(app.admin_notes || '');
+                                                                // setAdminNotes(app.admin_notes || '');
                                                             }}
                                                             className="dashboard-btn-primary text-sm flex items-center gap-2 ml-auto"
                                                             disabled={processingAction}
                                                         >
                                                             <Eye className="w-4 h-4" />
                                                             Review
-                                                        </button> */}
+                                                        </button>
                                                         
                                                     </td>
                                                 </tr>

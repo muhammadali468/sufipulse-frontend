@@ -10,7 +10,11 @@ import { WriterFormData } from '@/app/components/writers/WriterCredentialsForm';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
+import RichTextEditor from "../../components/ui/RichTextEditor"
+// import { BtnBold, BtnClearFormatting, BtnItalic, Editor, EditorProvider, Toolbar } from 'react-simple-wysiwyg';
+import Editor, {
+  EditorProvider,
+} from "react-simple-wysiwyg";
 interface Submission {
   id: string;
   submission_reference: string;
@@ -33,54 +37,42 @@ interface Notification {
   action_url?: string;
   submission_reference?: string;
 }
+export interface KalamUnderDraft {
+  title: string,
+  language: string,
+  writing_style: string,
+  content: string,
+}
+
+interface Kalam {
+  title: string;
+  user_id: string;
+  id: string;
+  writer_id: string;
+  status: string;
+  language: string;
+  writing_style: string;
+  content: string;
+}
 
 export default function UserDashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'submissions' | 'notifications'>('submissions');
+  const { user, profileStatus } = useAuth();
+  const [activeTab, setActiveTab] = useState<'submissions' | 'notifications' | 'archives'>('submissions');
   const [status, setStatus] = useState("")
+  const [kalamUnderDraft, setkalamUnderDraft] = useState<KalamUnderDraft>({
+    title: "",
+    language: "",
+    writing_style: "",
+    content: "",
+  })
+  const [kalams, setKalams] = useState<Kalam[]>([])
   // const [writerProfile,setWriterProfile] = useState()
-  const [formData, setFormData] = useState<WriterFormData>({
-    full_name: user ? user.full_name : "",
-    pen_name: "",
-    country: "",
-    city: "",
-    email: user ? user.email : "",
-    years_experience: "",
-    primary_languages: [],
-    writing_styles: [],
-    literary_background: "",
-    thematic_focus: "",
-    sample_kalam: "",
-    previous_publications: "",
-    editorial_review_experience: false,
-    willing_editorial_process: false,
-    revision_acknowledged: false,
-    institutional_acknowledged: false,
-
-  });
   const [error, setError] = useState('');
   const router = useRouter()
-  useEffect(() => {
-    const loadWriterProfile = async () => {
-      try {
-        const res = await api.readWriterProfile();
-        setFormData(prev => ({
-          ...prev,
-          ...res.data
-          // primaryLanguages: res.data.primaryLanguages || [],
-          // writing_styles: res.data.writing_styles || [],
-        }))
-        setStatus(res.data.profile_status)
-      } catch (error) {
-        console.log(error)
-      }
-    }
-    loadWriterProfile()
-    console.log(formData)
-  }, [])
+  // console.log("status", profileStatus)
   //   useEffect(() => {
   //     loadData();
   //   }, []);
@@ -166,32 +158,71 @@ export default function UserDashboard() {
     });
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault()
-    try {
-      setLoading(true)
-      const res = await api.updateWriterProfile(formData)
-      if (res.data.status === 401 || res.data.status === 400) {
-        router.push("/login")
+  const [writer, setWriter] = useState({
+    languages: [],
+    writing_styles: [],
+  })
+
+  useEffect(() => {
+    const loadWriterProfile = async () => {
+      try {
+        const res = await api.readWriterProfile();
+        setStatus(res.data.profile_status)
+        setWriter({
+          languages: res.data.primary_languages,
+          writing_styles: res.data.writing_styles
+        })
+      } catch (error) {
+        console.log(error)
       }
-      alert("Writer profile Updated")
-      setLoading(false)
-    } catch (error) {
-      console.log(error)
-    } finally {
+    }
+    const loadWriterKalams = async () => {
+      try {
+        const res = await api.getUserAllKalams();
+        setKalams(res.data)
+        console.log("Kalams fetched!")
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    loadWriterProfile()
+    loadWriterKalams()
+  }, [])
+
+  const handleSubmit = async (e: any) => {
+    console.log("kalam", kalams)
+    e.preventDefault()
+    setLoading(true)
+    try {
+      const res = await api.createKalam(kalams);
+      console.log("res", res)
+      alert("Kalam submitted!")
+      router.push("/")
+    } catch (err: any) {
+      alert(err.response?.data?.error || err.message);
+    }
+    finally {
       setLoading(false)
     }
-  }
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-  const handleCheckboxChange = (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      writing_styles: prev.writing_styles.includes(value)
-        ? prev.writing_styles.filter(s => s !== value)
-        : [...prev.writing_styles, value]
-    }));
   };
+
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+    setkalamUnderDraft(prev => ({
+      ...prev,
+      [name]: value
+    }))
+
+  }
+  const unreadCount = notifications.filter(n => !n.read).length;
+  //   const handleCheckboxChange = (value: string) => {
+  //   setKalam(prev => ({
+  //     ...prev,
+  //     writing_styles: prev.writing_styles.includes(value)
+  //       ? prev.writing_styles.filter(s => s !== value)
+  //       : [...prev.writing_styles, value],
+  //   }));
+  // };
   return (
     <Layout>
       <PageContainer>
@@ -237,6 +268,18 @@ export default function UserDashboard() {
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
                 )}
               </button>
+              <button
+                onClick={() => setActiveTab('archives')}
+                className={`pb-4 px-4 font-semibold transition-colors relative ${activeTab === 'archives'
+                  ? 'text-white'
+                  : 'text-neutral-400 hover:text-neutral-300'
+                  }`}
+              >
+                {/* <Bell className="w-5 h-5 inline-block mr-2" /> */}
+                <FileText className="w-5 h-5 inline-block mr-2" />
+                Archives
+
+              </button>
             </div>
 
             {loading ? (
@@ -249,327 +292,86 @@ export default function UserDashboard() {
                 {/* Submissions Tab */}
                 {activeTab === 'submissions' && (
                   <div className="space-y-4">
-                    {false ? (
+                    {status !== "approved" ? (
                       <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
                         <FileText className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">No submissions yet</h3>
+                        <h3 className="text-xl font-semibold text-white mb-2">Your Writer Profile hasn't approved yet</h3>
                         <p className="text-neutral-400">
-                          Your submissions will appear here once you apply or submit content.
+                          You can submit your kalam once your profile is approved.
                         </p>
 
                       </div>
                     ) : (
-                      <form className="bg-neutral-950/50 border border-neutral-800/50 rounded p-8">
-                        <div className="flex items-center gap-4 mb-6">
-                          <h3 className="text-lg font-semibold text-white">My Submissions (Writer Profile)</h3>
-                          <div className="bg-yellow-400 capitalize text-black rounded-lg px-4 py-2">{status}</div>
-                        </div>
-                        {error && (
-                          <div className="mb-6 p-4 bg-red-900/20 border border-red-800/50 rounded">
-                            <p className="text-red-400 text-sm">{error}</p>
-                          </div>
-                        )}
-
-                        <div className="grid md:grid-cols-2 gap-8">
-                          <div className="space-y-5">
+                      <div>
+                        {/* <RichTextEditor /> */}
+                        <div className='mb-4'>
+                          <div className="flex gap-4 mb-4">
                             <div>
-                              <h4 className="text-sm font-medium text-white mb-4">Identity & Background</h4>
-
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Full Name</label>
-                                  <input
-                                    type="text"
-                                    required
-                                    maxLength={200}
-                                    value={formData.full_name}
-                                    onChange={e => setFormData({ ...formData, full_name: DOMPurify.sanitize(e.target.value) })}
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Pen Name (if applicable)</label>
-                                  <input
-                                    type="text"
-                                    maxLength={200}
-                                    value={formData.pen_name}
-                                    onChange={e => setFormData({ ...formData, pen_name: DOMPurify.sanitize(e.target.value) })}
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Country</label>
-                                  <select
-                                    required
-                                    value={formData.country}
-                                    onChange={e => setFormData({ ...formData, country: e.target.value })}
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
-                                  >
-                                    <option value="">Select country</option>
-                                    <option value="USA">USA</option>
-                                    <option value="Canada">Canada</option>
-                                    <option value="UAE">UAE</option>
-                                    <option value="India">India</option>
-                                    <option value="Pakistan">Pakistan</option>
-                                    <option value="UK">UK</option>
-                                    <option value="Other">Other</option>
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">City</label>
-                                  <input
-                                    type="text"
-                                    required
-                                    maxLength={200}
-                                    value={formData.city}
-                                    onChange={e => setFormData({ ...formData, city: DOMPurify.sanitize(e.target.value) })}
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Email Address</label>
-                                  <input
-                                    type="email"
-                                    required
-                                    value={formData.email}
-                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Years of Writing Experience</label>
-                                  <select
-                                    required
-                                    value={formData.years_experience}
-                                    onChange={e => setFormData({ ...formData, years_experience: e.target.value })}
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
-                                  >
-                                    <option value="">Select experience</option>
-                                    <option value="0-2">0–2</option>
-                                    <option value="2-5">2–5</option>
-                                    <option value="5-10">5–10</option>
-                                    <option value="10+">10+</option>
-                                  </select>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div>
-                              <h4 className="text-sm font-medium text-white mb-4">Literary Competence</h4>
-
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Primary Writing Languages</label>
-                                  <input
-                                    type="text"
-                                    required
-                                    maxLength={500}
-                                    value={formData.primary_languages}
-                                    onChange={e => setFormData({ ...formData, primary_languages: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="e.g., Urdu, Arabic, Persian, English"
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-2">Writing Style & Form</label>
-                                  <div className="space-y-2">
-                                    {[
-                                      'Classical Ghazal',
-                                      'Nazm',
-                                      'Qasida',
-                                      'Hamd & Naat',
-                                      'Contemporary devotional',
-                                      'Free verse'
-                                    ].map(style => (
-                                      <label key={style} className="flex items-center gap-2 text-neutral-300 text-sm">
-                                        <input
-                                          type="checkbox"
-                                          checked={formData.writing_styles?.includes(style)}
-                                          onChange={() => handleCheckboxChange(style)}
-                                          className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
-                                        />
-                                        {style}
-                                      </label>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Literary Background</label>
-                                  <textarea
-                                    required
-                                    rows={4}
-                                    maxLength={2000}
-                                    value={formData.literary_background}
-                                    onChange={e => setFormData({ ...formData, literary_background: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="Brief overview of literary training, influences, or formal education"
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Thematic Focus</label>
-                                  <textarea
-                                    required
-                                    rows={3}
-                                    maxLength={1000}
-                                    value={formData.thematic_focus}
-                                    onChange={e => setFormData({ ...formData, thematic_focus: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="Core themes you explore in your writing"
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-5">
-                            <div>
-                              <h4 className="text-sm font-medium text-white mb-4">Sample Work & Publications</h4>
-
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Sample Kalam</label>
-                                  <textarea
-                                    required
-                                    rows={8}
-                                    maxLength={10000}
-                                    value={formData.sample_kalam}
-                                    onChange={e => setFormData({ ...formData, sample_kalam: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="Paste original kalam (must be unpublished work)"
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none font-mono"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Previous Publications (optional)</label>
-                                  <textarea
-                                    rows={3}
-                                    maxLength={2000}
-                                    value={formData.previous_publications}
-                                    onChange={e => setFormData({ ...formData, previous_publications: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="List any published works or credentials"
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            <div>
-                              <h4 className="text-sm font-medium text-white mb-4">Workflow Alignment</h4>
-
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-2">
-                                    Have you worked with editorial review processes before?
-                                  </label>
-                                  <div className="space-y-2">
-                                    <label className="flex items-center gap-2 text-neutral-300 text-sm">
-                                      <input
-                                        type="radio"
-                                        name="editorialExperience"
-                                        required
-                                        checked={formData.willing_editorial_process === true}
-                                        onChange={() => setFormData({ ...formData, willing_editorial_process: true })}
-                                        className="w-4 h-4"
-                                      />
-                                      Yes
-                                    </label>
-                                    <label className="flex items-center gap-2 text-neutral-300 text-sm">
-                                      <input
-                                        type="radio"
-                                        name="editorialExperience"
-                                        required
-                                        checked={formData.editorial_review_experience === false}
-                                        onChange={() => setFormData({ ...formData, editorial_review_experience: false })}
-                                        className="w-4 h-4"
-                                      />
-                                      No
-                                    </label>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-2">
-                                    Are you willing to participate in the structured editorial process?
-                                  </label>
-                                  <label className="flex items-center gap-2 text-neutral-300 text-sm">
+                              <label className="block text-neutral-400 text-xs mb-2">Kalam Writing Style</label>
+                              <div className="space-y-2">
+                                {writer.writing_styles.map(style => (
+                                  <label key={style} className="flex items-center gap-2 text-neutral-300 text-sm">
                                     <input
-                                      type="checkbox"
-                                      required
-                                      checked={formData.willing_editorial_process === true}
-                                      onChange={e => setFormData({ ...formData, willing_editorial_process: e.target.checked ? true : false })}
+                                      type="radio"
+                                      value={style}
+                                      checked={kalamUnderDraft.writing_style === style}
+                                      onChange={(e) =>
+                                        setkalamUnderDraft({ ...kalamUnderDraft, writing_style: e.target.value })
+                                      }
                                       className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                                     />
-                                    Yes
+                                    {style}
                                   </label>
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-2">
-                                    Do you acknowledge that submitted kalam may require revision before approval?
-                                  </label>
-                                  <label className="flex items-center gap-2 text-neutral-300 text-sm">
-                                    <input
-                                      type="checkbox"
-                                      required
-                                      checked={formData.revision_acknowledged}
-                                      onChange={e => setFormData({ ...formData, revision_acknowledged: e.target.checked })}
-                                      className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
-                                    />
-                                    Yes
-                                  </label>
-                                </div>
+                                ))}
                               </div>
                             </div>
-
                             <div>
-                              <h4 className="text-sm font-medium text-white mb-4">Governance Acknowledgment</h4>
-
-                              <div className="bg-neutral-900/30 border border-neutral-800 rounded p-4 mb-4">
-                                <div className="space-y-2 text-neutral-300 text-xs leading-relaxed">
-                                  <p>All kalam submissions undergo institutional editorial review.</p>
-                                  <p>Writers do not independently authorize publication or production.</p>
-                                  <p>Origination does not equal production clearance or registry authorization.</p>
-                                </div>
+                              <label className="block text-neutral-400 text-xs mb-2">Kalam Language</label>
+                              <div className="space-y-2">
+                                {writer.languages.map(language => (
+                                  <label key={language} className="flex items-center gap-2 text-neutral-300 text-sm">
+                                    <input
+                                      type="radio"
+                                      value={language}
+                                      checked={kalamUnderDraft.language === language}
+                                      onChange={(e) =>
+                                        setkalamUnderDraft({ ...kalamUnderDraft, language: e.target.value })
+                                      }
+                                      className="lowercase! w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
+                                    />
+                                    {language}
+                                  </label>
+                                ))}
                               </div>
-
-                              <label className="flex items-start gap-2 text-neutral-300 text-sm">
-                                <input
-                                  type="checkbox"
-                                  required
-                                  checked={formData.institutional_acknowledged}
-                                  onChange={e => setFormData({ ...formData, institutional_acknowledged: e.target.checked })}
-                                  className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded mt-0.5 shrink-0"
-                                />
-                                <span>I acknowledge and accept the institutional editorial framework.</span>
-                              </label>
                             </div>
                           </div>
+                          <label className="block text-sm font-semibold text-[var(--color-text-primary)]! mb-2">
+                            Kalam Title <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            name='title'
+                            value={kalamUnderDraft.title}
+                            onChange={handleChange}
+                            maxLength={100}
+                            className="form-input w-full px-4 py-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)]"
+                            placeholder="The name you wish to your kalam to be called"
+                          />
                         </div>
-
-                        <div className="mt-8 flex justify-end">
-                          <button
-                            // type="submit"
-                            onClick={handleSubmit}
-                            // disabled={!user.is_verified || !formData.institutional_acknowledged || !formData.revision_acknowledged}
-                            className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        <EditorProvider>
+                          <Editor name='content' className='border border-white!' value={kalamUnderDraft.content} onChange={handleChange}
+                            style={{ minHeight: "300px", maxHeight: "600px", overflowY: "auto" }}
                           >
-                            {loading ?
-                              <Loader className='animate-spin' />
-                              :
-                              'Save Changes'
-                            }
+                          </Editor>
+                        </EditorProvider>
+                        <div className="flex w-full justify-end">
+                          <button className='bg-yellow-400 text-black px-4 py-2 rounded-lg mt-4' onClick={handleSubmit}>
+                            {loading ? <Loader className='animate' /> : "Save & Submit"}
                           </button>
-
                         </div>
-                      </form>
+                        {/* <button onClick={handleSubmitKalam}>Save</button> */}
+                      </div>
                     )}
                   </div>
                 )}
@@ -638,6 +440,58 @@ export default function UserDashboard() {
                         </div>
                       ))
                     )}
+                  </div>
+                )}
+                {/* Archive Tab */}
+                {activeTab === 'archives' && (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border border-gray-200">
+                      <thead className="">
+                        <tr>
+                          <th className="p-3 border">ID</th>
+                          <th className="p-3 border">Title</th>
+                          {/* <th className="p-3 border">User ID</th> */}
+                          <th className="p-3 border">Writer ID</th>
+                          <th className="p-3 border">Language</th>
+                          <th className="p-3 border">Writing Style</th>
+                          <th className="p-3 border">Status</th>
+                          <th className="p-3 border">Content</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {kalams.map((kalam:any) => (
+                          <>
+                            <tr key={kalam.id} className="text-center">
+                              <td className="p-3 border">{kalam.id}</td>
+                              <td className="p-3 border">{kalam.title}</td>
+                              {/* <td className="p-3 border">{kalam.user_id}</td> */}
+                              <td className="p-3 border">{kalam.writer_id}</td>
+                              <td className="p-3 border">{kalam.language}</td>
+                              <td className="p-3 border">{kalam.writing_style}</td>
+                              <td className="p-3 border">{kalam.status}</td>
+
+                              <td className="p-3 border">
+                                <button
+                                  // onClick={() => toggleContent(kalam.id)}
+                                  className="text-blue-600 underline"
+                                >
+                                  View
+                                </button>
+                              </td>
+                            </tr>
+
+                            {/* {expanded === kalam.id && (
+                              <tr>
+                                <td colSpan={8} className="p-4 border bg-gray-50">
+                                  {kalam.content}
+                                </td>
+                              </tr>
+                            )} */}
+                          </>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </>

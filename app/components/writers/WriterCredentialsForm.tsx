@@ -16,7 +16,7 @@ export interface WriterFormData {
   city: string;
   email: string;
   years_experience: string;
-  primary_languages: string | string[];
+  primary_languages: any;
   writing_styles: string[];
   literary_background: string;
   thematic_focus: string;
@@ -26,9 +26,9 @@ export interface WriterFormData {
   willing_editorial_process: boolean | null;
   revision_acknowledged: boolean;
   institutional_acknowledged: boolean;
-  profile_status?:string;
-  id?:string;
-  created_at?:string;
+  profile_status?: string;
+  id?: string;
+  created_at?: string;
 }
 
 export function WriterCredentialsForm() {
@@ -46,7 +46,7 @@ export function WriterCredentialsForm() {
     city: "",
     email: user ? user.email : "",
     years_experience: "",
-    primary_languages: [],
+    primary_languages: "",
     writing_styles: [],
     literary_background: "",
     thematic_focus: "",
@@ -62,27 +62,37 @@ export function WriterCredentialsForm() {
   const handleCheckboxChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      writingStyle: prev.writing_styles.includes(value)
+      writing_styles: prev.writing_styles.includes(value)
         ? prev.writing_styles.filter(s => s !== value)
         : [...prev.writing_styles, value]
     }));
   };
 
   const handleSubmit = async (e: any) => {
-    e.preventDefault()
+    e.preventDefault();
+
+    const payload = {
+      ...formData,
+      primary_languages: formData.primary_languages
+        .trim()
+        .split(/[,\s]+/)
+        .filter(Boolean) // split by space
+    };
+
     try {
-      setLoading(true)
-      const res = await api.createWriterProfile(formData)
-      if (res.data.status === 401 || res.data.status === 400) {
-        router.push("/login")
-      }
-      alert("Writer profile Submitted")
+      setLoading(true);
+      console.log(payload);
+
+      const res = await api.createWriterProfile(payload);
+
+      alert("Writer profile Submitted");
     } catch (error) {
-      console.log(error)
+      console.log(error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
   // useEffect(() => {
   //   const handleLoadWriterProfile = async () => {
   //     try {
@@ -151,6 +161,17 @@ export function WriterCredentialsForm() {
       />
     );
   }
+  const [text, setText] = useState("");
+  // const [array, setArray] = useState([]);
+  const handleLanguageChange = (e: any) => {
+    const value = e.target.value;
+    setText(value);
+    const arr = value.trim().split(/\s+/); // split by spaces
+    setFormData(({ ...formData, primary_languages: arr }));
+  };
+  // const SpaceSeparatedInput = () => {
+
+
 
   return (
     <form className="bg-neutral-950/50 border border-neutral-800/50 rounded p-8">
@@ -186,7 +207,7 @@ export function WriterCredentialsForm() {
                   type="text"
                   maxLength={200}
                   value={formData.pen_name}
-                  // onChange={e => setFormData({ ...formData, penName: DOMPurify.sanitize(e.target.value) })}
+                  onChange={e => setFormData({ ...formData, pen_name: DOMPurify.sanitize(e.target.value) })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -262,7 +283,7 @@ export function WriterCredentialsForm() {
                   required
                   maxLength={500}
                   value={formData.primary_languages}
-                  // onChange={e => setFormData({ ...formData, primaryLanguages: DOMPurify.sanitize(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, primary_languages: e.target.value })}
                   placeholder="e.g., Urdu, Arabic, Persian, English"
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
@@ -299,7 +320,7 @@ export function WriterCredentialsForm() {
                   rows={4}
                   maxLength={2000}
                   value={formData.literary_background}
-                  // onChange={e => setFormData({ ...formData, literaryBackground: DOMPurify.sanitize(e.target.value) })}
+                  onChange={e => setFormData({ ...formData, literary_background: DOMPurify.sanitize(e.target.value) })}
                   placeholder="Brief overview of literary training, influences, or formal education"
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
                 />
@@ -312,7 +333,7 @@ export function WriterCredentialsForm() {
                   rows={3}
                   maxLength={1000}
                   value={formData.thematic_focus}
-                  // onChange={e => setFormData({ ...formData, thematicFocus: DOMPurify.sanitize(e.target.value) })}
+                  onChange={e => setFormData({ ...formData, thematic_focus: DOMPurify.sanitize(e.target.value) })}
                   placeholder="Core themes you explore in your writing"
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
                 />
@@ -333,7 +354,7 @@ export function WriterCredentialsForm() {
                   rows={8}
                   maxLength={10000}
                   value={formData.sample_kalam}
-                  // onChange={e => setFormData({ ...formData, sampleWork: DOMPurify.sanitize(e.target.value) })}
+                  onChange={e => setFormData({ ...formData, sample_kalam: DOMPurify.sanitize(e.target.value) })}
                   placeholder="Paste original kalam (must be unpublished work)"
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none font-mono"
                 />
@@ -345,7 +366,7 @@ export function WriterCredentialsForm() {
                   rows={3}
                   maxLength={2000}
                   value={formData.previous_publications}
-                  // onChange={e => setFormData({ ...formData, previousPublications: DOMPurify.sanitize(e.target.value) })}
+                  onChange={e => setFormData({ ...formData, previous_publications: DOMPurify.sanitize(e.target.value) })}
                   placeholder="List any published works or credentials"
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
                 />
@@ -451,7 +472,7 @@ export function WriterCredentialsForm() {
           // type="submit"
           onClick={handleSubmit}
           disabled={!user.is_verified || !formData.institutional_acknowledged || !formData.revision_acknowledged}
-          className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="cursor-pointer px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ?
             <Loader className='animate-spin' />

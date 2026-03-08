@@ -296,7 +296,7 @@ export default function Writers() {
 
       <Section className="py-12">
         <PageContainer>
-          <div className="max-w-4xl">
+          <div id="submission" className="max-w-4xl">
             <h2 className="text-3xl font-bold text-white mb-6">
               Submission & Structural Alignment
             </h2>
@@ -371,7 +371,7 @@ export default function Writers() {
                   onClick={() => setShowApplicationForm(!showApplicationForm)}
                   className="w-full bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 text-amber-400 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
                 >
-                  {showApplicationForm ? 'Hide Form' : 'Submit Kalam for Review'}
+                  {showApplicationForm ? 'Hide Form' : 'Submit Writer Profile for Review'}
                 </button>
               </div>
             </div>

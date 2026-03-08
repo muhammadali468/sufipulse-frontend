@@ -1,16 +1,24 @@
 import axios from "axios";
 import { WriterFormData } from "../components/writers/WriterCredentialsForm";
+import { Kalam } from "../user/dashboard/page";
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 axios.defaults.withCredentials = true;
 
 let accessToken: string | null = null;
 
-if (typeof window !== "undefined") {
-  accessToken = localStorage.getItem("accessToken") || null;
-}
+const getToken = () => {
+    if (!accessToken && typeof window !== "undefined") {
+        accessToken = localStorage.getItem("accessToken") || null;
+    }
+    return accessToken;
+};
+
 export const setAccessToken = (token: string) => {
     accessToken = token;
-}
+    if (typeof window !== "undefined") {
+        localStorage.setItem("accessToken", token);
+    }
+};
 
 const api = axios.create({
     baseURL: API_URL,
@@ -18,20 +26,25 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-    if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
-    return config
+    const token = getToken();
+    config.headers = config.headers || {};
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log("Sending token:", token);
+    }
+    return config;
 });
 
 api.interceptors.response.use((res) =>
     res,
     async (err) => {
         const originalRequest = err.config
-        if (err.response?.status === 401 && !originalRequest._retry ) {
+        if (err.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
             try {
                 const response = await axios.post(`${API_URL}/auth/refresh-token`, {}, { withCredentials: true })
                 accessToken = response.data.accessToken
-                if(accessToken){
+                if (accessToken) {
                     localStorage.setItem("accessToken", accessToken);
                 }
 
@@ -40,6 +53,9 @@ api.interceptors.response.use((res) =>
             } catch (refreshErr) {
                 console.error("Refresh token expired", refreshErr);
                 localStorage.removeItem("accessToken");
+                if (typeof window !== "undefined") {
+                    window.location.href = "/login";
+                }
                 return Promise.reject(refreshErr);
             }
         }
@@ -80,15 +96,27 @@ export const logout = () => {
 export const refreshToken = () => {
     return api.post(`${API_URL}/auth/refresh-token`)
 }
-export const createWriterProfile = (form:WriterFormData) => {
+export const createWriterProfile = (form: WriterFormData) => {
     return api.post(`${API_URL}/writer/create-profile`, form)
 }
 export const readWriterProfile = () => {
     return api.get(`${API_URL}/writer/read-profile`)
 }
-export const updateWriterProfile = (form:WriterFormData) => {
+export const updateWriterProfile = (form: WriterFormData) => {
     return api.post(`${API_URL}/writer/update-profile`, form)
+}
+export const deleteWriterProfile = () => {
+    return api.delete(`${API_URL}/writer/delete-profile`)
 }
 export const getAllWriter = () => {
     return api.get(`${API_URL}/writer/get-all`)
+}
+export const createKalam = (kalam: Kalam) => {
+    return api.post(`${API_URL}/kalam/create`, kalam)
+}
+export const getUserAllKalams = () => {
+    return api.get(`${API_URL}/kalam/get-all-user`)
+}
+export const getAllKalams = () => {
+    return api.get(`${API_URL}/kalam/get-all`)
 }

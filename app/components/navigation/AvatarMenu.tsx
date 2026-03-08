@@ -104,7 +104,7 @@ export function AvatarMenu() {
                     </Link>
 
                     <Link
-                      href="/user/dashboard"
+                      href="/user/profile"
                       onClick={handleLinkClick}
                       className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
                       role="menuitem"

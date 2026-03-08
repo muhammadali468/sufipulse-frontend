@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
 
   const handleSignOut = async () => {
-    await logout();
+    logout();
     router.push('/');
   };
 

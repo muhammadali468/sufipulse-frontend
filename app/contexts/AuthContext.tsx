@@ -11,9 +11,11 @@ type AuthContextType = {
     user: User | null,
     accessToken: string | null,
     loading: boolean,
+    profileStatus:string | null,
     login: (email: string, password: string) => Promise<void>,
     googleLogin: (credential?: string) => Promise<void>, // Fix: likely needs credential for Google
-    logout: () => void;
+    logout: () => void,
+    readWriterProfile:()=>void;
 };
 
 interface DecodedToken {
@@ -27,10 +29,12 @@ interface DecodedToken {
 export const AuthContext = createContext<AuthContextType>({
     user: null,
     accessToken: null,
-    loading:false,
+    loading: false,
+    profileStatus:null,
     login: async () => { },
     googleLogin: async () => { },
     logout: async () => { },
+    readWriterProfile: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -39,7 +43,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [isAdmin, setIsAdmin] = useState<boolean>(false)
     const [isHydrated, setIsHydrated] = useState(false); // Add hydration flag
-    const [res, setRes] = useState() as any
+    // const [res, setRes] = useState() as any
+    const [profileStatus, setProfileStatus] = useState<string>("")
     const router = useRouter();
 
     // Hydration fix: run init only after mount
@@ -115,11 +120,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error("Logout failed:", error);
         }
         finally {
-            setAccessToken(null);
+            localStorage.removeItem("accessToken");
             setUser(null);
             router.push('/login');
         }
     };
+
+    const readWriterProfile = async () => {
+        try {
+            const res = await api.readWriterProfile();
+            setProfileStatus(res.data.profile_status)
+            return res.data
+        } catch (error) {
+            console.log(error)
+        }
+    }
     // Prevent mismatch: show loading until hydrated
     if (!isHydrated) {
         return (
@@ -139,6 +154,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             login,
             googleLogin,
             logout,
+            profileStatus,
+            readWriterProfile
         }}>
             {children}
         </AuthContext.Provider>

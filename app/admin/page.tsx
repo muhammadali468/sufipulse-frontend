@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // import { Link } from 'react-router-dom';
 import {
   Users,
@@ -15,6 +15,7 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 // import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface DashboardStats {
   totalUsers: number;
@@ -27,7 +28,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-//   const { user, loading } = useAuth();
+  //   const { user, loading } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     writerApplications: 0,
@@ -37,49 +38,59 @@ export default function AdminDashboard() {
     pendingPartnerships: 0,
     pendingSessionRequests: 0,
   });
+  const router = useRouter()
+  const { user } = useAuth()
   const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    } else if (!user.role.includes("admin")) {
+      alert("Only Admin can access this page")
+      router.push("/");
+    }
+  }, [user]);
 
-//   useEffect(() => {
-//     if (!authLoading) {
-//       loadStats();
-//     }
-//   }, [authLoading]);
+  //   useEffect(() => {
+  //     if (!authLoading) {
+  //       loadStats();
+  //     }
+  //   }, [authLoading]);
 
-//   const loadStats = async () => {
-//     try {
-//       const [
-//         usersResult,
-//         writerAppsResult,
-//         vocalistAppsResult,
-//         kalamsResult,
-//         articlesResult,
-//         partnershipsResult,
-//         sessionRequestsResult,
-//       ] = await Promise.all([
-//         supabase.from('users').select('id', { count: 'exact', head: true }),
-//         supabase.from('writer_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-//         supabase.from('vocalist_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-//         supabase.from('kalams').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
-//         supabase.from('literary_articles').select('id', { count: 'exact', head: true }).eq('publication_status', 'submitted'),
-//         supabase.from('institutional_partnership_proposals').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-//         supabase.from('session_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-//       ]);
+  //   const loadStats = async () => {
+  //     try {
+  //       const [
+  //         usersResult,
+  //         writerAppsResult,
+  //         vocalistAppsResult,
+  //         kalamsResult,
+  //         articlesResult,
+  //         partnershipsResult,
+  //         sessionRequestsResult,
+  //       ] = await Promise.all([
+  //         supabase.from('users').select('id', { count: 'exact', head: true }),
+  //         supabase.from('writer_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+  //         supabase.from('vocalist_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+  //         supabase.from('kalams').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
+  //         supabase.from('literary_articles').select('id', { count: 'exact', head: true }).eq('publication_status', 'submitted'),
+  //         supabase.from('institutional_partnership_proposals').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+  //         supabase.from('session_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+  //       ]);
 
-//       setStats({
-//         totalUsers: usersResult.count || 0,
-//         writerApplications: writerAppsResult.count || 0,
-//         vocalistApplications: vocalistAppsResult.count || 0,
-//         pendingKalams: kalamsResult.count || 0,
-//         pendingArticles: articlesResult.count || 0,
-//         pendingPartnerships: partnershipsResult.count || 0,
-//         pendingSessionRequests: sessionRequestsResult.count || 0,
-//       });
-//     } catch (error) {
-//       console.error('Error loading stats:', error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+  //       setStats({
+  //         totalUsers: usersResult.count || 0,
+  //         writerApplications: writerAppsResult.count || 0,
+  //         vocalistApplications: vocalistAppsResult.count || 0,
+  //         pendingKalams: kalamsResult.count || 0,
+  //         pendingArticles: articlesResult.count || 0,
+  //         pendingPartnerships: partnershipsResult.count || 0,
+  //         pendingSessionRequests: sessionRequestsResult.count || 0,
+  //       });
+  //     } catch (error) {
+  //       console.error('Error loading stats:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
   const statCards = [
     {
@@ -151,8 +162,8 @@ export default function AdminDashboard() {
   }
 
   const totalPendingItems = stats.writerApplications + stats.vocalistApplications +
-                            stats.pendingKalams + stats.pendingArticles +
-                            stats.pendingPartnerships + stats.pendingSessionRequests;
+    stats.pendingKalams + stats.pendingArticles +
+    stats.pendingPartnerships + stats.pendingSessionRequests;
 
   return (
     <DashboardLayout>
