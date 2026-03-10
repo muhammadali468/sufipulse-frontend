@@ -25,17 +25,17 @@ export default function SignUp() {
             [name]: value
         }))
     }
-    const handleRegister = async (e: any) => {
-        e.preventDefault()
-        try {
-            await api.register(form.fullName, form.email, form.password);
-            localStorage.setItem("email", form.email)
-            alert("OTP sent! Check your email.");
-            router.push("/verify-email");
-        } catch (err: any) {
-            alert(err.response?.data?.error || err.message);
-        }
-    };
+    // const handleRegister = async (e: any) => {
+    //     e.preventDefault()
+    //     try {
+    //         await api.register(form.fullName, form.email, form.password);
+    //         localStorage.setItem("email", form.email)
+    //         alert("OTP sent! Check your email.");
+    //         router.push("/verify-email");
+    //     } catch (err: any) {
+    //         alert(err.response?.data?.error || err.message);
+    //     }
+    // };
 
     // Role-aware redirect after successful signup
     //   useEffect(() => {
@@ -48,6 +48,24 @@ export default function SignUp() {
     //     }
     //   }, [user, isAdmin, authLoading, navigate]);
 
+    const handleRegister = async (e: any) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            await api.register(form.fullName, form.email, form.password);
+
+            localStorage.setItem("email", form.email);
+
+            alert("OTP sent! Check your email.");
+            router.push("/verify-email");
+
+        } catch (err: any) {
+            alert(err.response?.data?.error || err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <Layout>

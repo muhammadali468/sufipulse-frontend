@@ -1,6 +1,6 @@
 import axios from "axios";
 import { WriterFormData } from "../components/writers/WriterCredentialsForm";
-import { Kalam } from "../user/dashboard/page";
+import { KalamUnderDraft } from "../user/dashboard/page";
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 axios.defaults.withCredentials = true;
 
@@ -111,7 +111,7 @@ export const deleteWriterProfile = () => {
 export const getAllWriter = () => {
     return api.get(`${API_URL}/writer/get-all`)
 }
-export const createKalam = (kalam: Kalam) => {
+export const createKalam = (kalam: KalamUnderDraft) => {
     return api.post(`${API_URL}/kalam/create`, kalam)
 }
 export const getUserAllKalams = () => {
@@ -119,4 +119,15 @@ export const getUserAllKalams = () => {
 }
 export const getAllKalams = () => {
     return api.get(`${API_URL}/kalam/get-all`)
+}
+export const updateKalam = (id: string, data: any) => {
+    return api.put(`${API_URL}/kalam/${id}`, data);
+};
+
+export const deleteKalam = (id: string) => {
+    return api.delete(`${API_URL}/kalam/${id}`);
+}
+
+export const updateKalamStatus = (id: string, status: string, revision_notes:string | null) => {
+    return api.patch(`${API_URL}/kalam/update-status/${id}`, {status, revision_notes});
 }

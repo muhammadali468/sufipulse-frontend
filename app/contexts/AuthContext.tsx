@@ -11,11 +11,11 @@ type AuthContextType = {
     user: User | null,
     accessToken: string | null,
     loading: boolean,
-    profileStatus:string | null,
+    profileStatus: string | null,
     login: (email: string, password: string) => Promise<void>,
     googleLogin: (credential?: string) => Promise<void>, // Fix: likely needs credential for Google
     logout: () => void,
-    readWriterProfile:()=>void;
+    readWriterProfile: () => void;
 };
 
 interface DecodedToken {
@@ -30,7 +30,7 @@ export const AuthContext = createContext<AuthContextType>({
     user: null,
     accessToken: null,
     loading: false,
-    profileStatus:null,
+    profileStatus: null,
     login: async () => { },
     googleLogin: async () => { },
     logout: async () => { },
@@ -81,20 +81,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         init();
     }, []);
 
+    // const login = async (email: string, password: string) => {
+    //     try {
+    //         const res = await api.login(email, password);
+    //         const { accessToken } = res.data;
+    //         console.log("res.data", res.data)
+    //         // Store tokens
+    //         localStorage.setItem("accessToken", accessToken);
+    //         setAccessToken(accessToken); // Standardize
+    //         const decoded: DecodedToken = jwtDecode(accessToken);
+    //         setUser({ id: decoded.id, role: decoded.role, email: decoded.email, full_name: decoded.full_name, is_verified: decoded.is_verified });
+    //         // router.push('/dashboard'); // Add redirect
+    //     } catch (error: any) {
+    //         console.error("Login failed:", error);
+    //         alert(error.response?.data?.message || "Login failed. Try again.");
+    //     }
+    // };
+
     const login = async (email: string, password: string) => {
         try {
             const res = await api.login(email, password);
             const { accessToken } = res.data;
-            console.log("res.data", res.data)
-            // Store tokens
+
             localStorage.setItem("accessToken", accessToken);
-            setAccessToken(accessToken); // Standardize
+            setAccessToken(accessToken);
+
             const decoded: DecodedToken = jwtDecode(accessToken);
-            setUser({ id: decoded.id, role: decoded.role, email: decoded.email, full_name: decoded.full_name, is_verified: decoded.is_verified });
-            // router.push('/dashboard'); // Add redirect
+
+            setUser({
+                id: decoded.id,
+                role: decoded.role,
+                email: decoded.email,
+                full_name: decoded.full_name,
+                is_verified: decoded.is_verified
+            });
+
+            return res.data;
+
         } catch (error: any) {
             console.error("Login failed:", error);
-            alert(error.response?.data?.message || "Login failed. Try again.");
+
+            // important: pass error back to caller
+            throw error;
         }
     };
 

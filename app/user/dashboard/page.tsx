@@ -53,6 +53,7 @@ interface Kalam {
   language: string;
   writing_style: string;
   content: string;
+  revision_notes?:string;
 }
 
 export default function UserDashboard() {
@@ -62,6 +63,8 @@ export default function UserDashboard() {
   const { user, profileStatus } = useAuth();
   const [activeTab, setActiveTab] = useState<'submissions' | 'notifications' | 'archives'>('submissions');
   const [status, setStatus] = useState("")
+  const [editingKalam, setEditingKalam] = useState<Kalam | null>(null);
+  const [kalam, setKalam] = useState<Kalam | null>(null);
   const [kalamUnderDraft, setkalamUnderDraft] = useState<KalamUnderDraft>({
     title: "",
     language: "",
@@ -69,6 +72,7 @@ export default function UserDashboard() {
     content: "",
   })
   const [kalams, setKalams] = useState<Kalam[]>([])
+  const [contentModal, setContentModal] = useState(false)
   // const [writerProfile,setWriterProfile] = useState()
   const [error, setError] = useState('');
   const router = useRouter()
@@ -158,11 +162,20 @@ export default function UserDashboard() {
     });
   };
 
+
   const [writer, setWriter] = useState({
     languages: [],
     writing_styles: [],
   })
-
+  const loadWriterKalams = async () => {
+    try {
+      const res = await api.getUserAllKalams();
+      setKalams(res.data)
+      console.log("Kalams fetched!")
+    } catch (error) {
+      console.log(error)
+    }
+  }
   useEffect(() => {
     const loadWriterProfile = async () => {
       try {
@@ -176,36 +189,103 @@ export default function UserDashboard() {
         console.log(error)
       }
     }
-    const loadWriterKalams = async () => {
-      try {
-        const res = await api.getUserAllKalams();
-        setKalams(res.data)
-        console.log("Kalams fetched!")
-      } catch (error) {
-        console.log(error)
-      }
-    }
+
     loadWriterProfile()
     loadWriterKalams()
   }, [])
 
-  const handleSubmit = async (e: any) => {
-    console.log("kalam", kalams)
-    e.preventDefault()
-    setLoading(true)
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this kalam?")) return;
+
     try {
-      const res = await api.createKalam(kalams);
-      console.log("res", res)
-      alert("Kalam submitted!")
-      router.push("/")
+      await api.deleteKalam(id);
+      alert("Kalam deleted");
+      loadWriterKalams();
     } catch (err: any) {
       alert(err.response?.data?.error || err.message);
     }
-    finally {
-      setLoading(false)
-    }
   };
 
+  const handleEdit = (kalam: Kalam) => {
+    setEditingKalam(kalam);
+    setkalamUnderDraft({
+      title: kalam.title,
+      language: kalam.language,
+      writing_style: kalam.writing_style,
+      content: kalam.content,
+    });
+
+    setActiveTab("submissions");
+  };
+
+  const handleShowContent = (kalam: any) => {
+    setKalam(kalam)
+    setContentModal(true)
+    // console.log(showContent)
+  }
+  // const handleSubmit = async (e: any) => {
+  //   console.log("kalam", kalams)
+  //   e.preventDefault()
+  //   setLoading(true)
+  //   try {
+  //     const res = await api.createKalam(kalamUnderDraft);
+  //     loadWriterKalams()
+  //     alert("Kalam submitted!")
+  //     // router.push("/")
+  //     setActiveTab("archives")
+  //   } catch (err: any) {
+  //     alert(err.response?.data?.error || err.message);
+  //   }
+  //   finally {
+  //     setLoading(false)
+  //   }
+  // };
+
+  const handleUpdateStatus = async (kalam: Kalam, status: string) => {
+  if (!kalam) return;
+
+  try {
+    await api.updateKalamStatus(
+      kalam.id,
+      status,
+      null
+    );
+
+    alert("Status updated");
+
+    setKalam(null);
+    setContentModal(false);
+
+    loadWriterKalams(); // refresh table
+  } catch (err: any) {
+    alert(err.response?.data?.error || err.message);
+  }
+};
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+
+      if (editingKalam) {
+        await api.updateKalam(editingKalam.id, kalamUnderDraft);
+        alert("Kalam updated!");
+        setEditingKalam(null);
+      } else {
+        await api.createKalam(kalamUnderDraft);
+        alert("Kalam submitted!");
+      }
+
+      loadWriterKalams();
+      setActiveTab("archives");
+
+    } catch (err: any) {
+      alert(err.response?.data?.error || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setkalamUnderDraft(prev => ({
@@ -250,7 +330,7 @@ export default function UserDashboard() {
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
                 )}
               </button>
-              <button
+              {/* <button
                 onClick={() => setActiveTab('notifications')}
                 className={`pb-4 px-4 font-semibold transition-colors relative ${activeTab === 'notifications'
                   ? 'text-white'
@@ -267,7 +347,7 @@ export default function UserDashboard() {
                 {activeTab === 'notifications' && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
                 )}
-              </button>
+              </button> */}
               <button
                 onClick={() => setActiveTab('archives')}
                 className={`pb-4 px-4 font-semibold transition-colors relative ${activeTab === 'archives'
@@ -377,7 +457,7 @@ export default function UserDashboard() {
                 )}
 
                 {/* Notifications Tab */}
-                {activeTab === 'notifications' && (
+                {/* {activeTab === 'notifications' && (
                   <div className="space-y-4">
                     {notifications.length === 0 ? (
                       <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
@@ -441,8 +521,93 @@ export default function UserDashboard() {
                       ))
                     )}
                   </div>
-                )}
+                )} */}
                 {/* Archive Tab */}
+
+                {contentModal && kalam ?
+                    <div className="dashboard-modal-overlay">
+                      <div className="dashboard-modal">
+                        <div className="dashboard-modal-header">
+                          <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">Kalam Review</h2>
+                            <button
+                              onClick={() => {
+                                // setSelectedKalam(null);
+                                // setReviewNotes('');
+                                setContentModal(false)
+                              }}
+                              className="text-[var(--dash-text-muted)] hover:text-[var(--dash-text-secondary)]"
+                            >
+                              <XCircle className="w-6 h-6" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="dashboard-modal-body overflow-y-scroll scrollbar-hide">
+                          <div className="space-y-4">
+
+                            {kalam.revision_notes ?
+                              <div>
+                                <label className="dashboard-label">
+                                  Admin Notes
+                                </label>
+                                <div className="bg-red-600 rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                  <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                    {kalam.revision_notes}
+                                  </p>
+                                </div>
+                              </div>
+                              : ""}
+                            <div>
+                              <label className="dashboard-label">
+                                Title
+                              </label>
+                              <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                  {kalam.title}
+                                </p>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="dashboard-label">
+                                Content
+                              </label>
+                              <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                  {kalam.content}
+                                </p>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+
+                        <div className="dashboard-modal-footer">
+                          <button
+                            disabled={kalam.status !== "draft"}
+                            onClick={() => handleUpdateStatus(kalam, 'under review')}
+                            className="flex-1 disabled:opacity-50 bg-[var(--dash-status-approved)] hover:opacity-90 text-white rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
+                          >
+                            {kalam.status === "draft" ? <CheckCircle className="w-5 h-5" /> : ""}
+                            {kalam.status === "draft" ? "Submit Kalam" : kalam.status === "under review" ? "Under Review" : "Submitted"}
+                          </button>
+                          <button
+                            disabled={kalam.status !== "draft"}
+                            onClick={() => {
+                              handleDelete(kalam.id)
+                            }}
+                            className="flex-1 disabled:opacity-50 dashboard-btn-danger flex items-center justify-center gap-2"
+                          >
+                            <XCircle className="w-5 h-5" />
+                            Delete Kalam
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  
+
+                  : ""}
+
                 {activeTab === 'archives' && (
                   <div className="overflow-x-auto">
                     <table className="min-w-full border border-gray-200">
@@ -451,7 +616,7 @@ export default function UserDashboard() {
                           <th className="p-3 border">ID</th>
                           <th className="p-3 border">Title</th>
                           {/* <th className="p-3 border">User ID</th> */}
-                          <th className="p-3 border">Writer ID</th>
+                          {/* <th className="p-3 border">Writer ID</th> */}
                           <th className="p-3 border">Language</th>
                           <th className="p-3 border">Writing Style</th>
                           <th className="p-3 border">Status</th>
@@ -460,34 +625,38 @@ export default function UserDashboard() {
                       </thead>
 
                       <tbody>
-                        {kalams.map((kalam:any) => (
+                        {kalams.map((kalam: any) => (
                           <>
                             <tr key={kalam.id} className="text-center">
                               <td className="p-3 border">{kalam.id}</td>
                               <td className="p-3 border">{kalam.title}</td>
-                              {/* <td className="p-3 border">{kalam.user_id}</td> */}
-                              <td className="p-3 border">{kalam.writer_id}</td>
                               <td className="p-3 border">{kalam.language}</td>
                               <td className="p-3 border">{kalam.writing_style}</td>
-                              <td className="p-3 border">{kalam.status}</td>
-
-                              <td className="p-3 border">
+                              <td className="p-3 border capitalize">{kalam.status}</td>
+                              <td className="p-3 border flex gap-3 justify-center">
                                 <button
-                                  // onClick={() => toggleContent(kalam.id)}
-                                  className="text-blue-600 underline"
+                                  onClick={() => handleShowContent(kalam)}
+                                  className="bg-blue-500 text-black rounded-lg px-4 py-2"
                                 >
                                   View
                                 </button>
+
+                                <button
+                                  onClick={() => handleEdit(kalam)}
+                                  className="bg-yellow-500 text-black rounded-lg px-4 py-2"
+                                >
+                                  Edit
+                                </button>
+
+
+
                               </td>
                             </tr>
 
-                            {/* {expanded === kalam.id && (
-                              <tr>
-                                <td colSpan={8} className="p-4 border bg-gray-50">
-                                  {kalam.content}
-                                </td>
-                              </tr>
-                            )} */}
+
+
+
+
                           </>
                         ))}
                       </tbody>
@@ -496,6 +665,7 @@ export default function UserDashboard() {
                 )}
               </>
             )}
+
           </div>
         </div>
       </PageContainer>

@@ -4,27 +4,39 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 // import { supabase } from '../lib/supabase';
 import { CheckCircle, XCircle, Clock, Eye, User } from 'lucide-react';
 import * as api from "../../api/auth"
+// interface Kalam {
+//   id: string;
+//   writer_id: string;
+//   user_id:stringl
+//   title: string;
+//   arabic_text: string;
+//   transliteration: string | null;
+//   translation: string | null;
+//   theme: string | null;
+//   language: string;
+//   submitted_at: string;
+//   status: 'submitted' | 'under_review' | 'revision_requested' | 'approved' | 'rejected';
+//   reviewer_id: number | null;
+//   reviewed_at: string | null;
+//   review_notes: string | null;
+//   revision_notes: string | null;
+//   revision_count: number;
+//   version: number;
+//   users: {
+//     email: string;
+//     full_name: string | null;
+//   } | null;
+// }
+
 interface Kalam {
-  id: string;
-  writer_id: number;
   title: string;
-  arabic_text: string;
-  transliteration: string | null;
-  translation: string | null;
-  theme: string | null;
-  language: string;
-  submitted_at: string;
-  status: 'submitted' | 'under_review' | 'revision_requested' | 'approved' | 'rejected';
-  reviewer_id: number | null;
-  reviewed_at: string | null;
-  review_notes: string | null;
-  revision_notes: string | null;
-  revision_count: number;
-  version: number;
-  users: {
-    email: string;
-    full_name: string | null;
-  } | null;
+  user_id: string;
+  id: string;
+  writer_id: string;
+  status: 'submitted' | 'under_review' | 'revision_requested' | 'approved' | 'rejected' | 'draft';
+  language:string;
+  writing_style:string;
+  content:string;
 }
 
 export default function AdminKalams() {
@@ -34,7 +46,7 @@ export default function AdminKalams() {
   const [reviewNotes, setReviewNotes] = useState('');
   const [filter, setFilter] = useState<'all' | 'submitted' | 'approved' | 'rejected'>('submitted');
 
-  useEffect(() => { 
+  useEffect(() => {
     loadKalams();
   }, []);
 
@@ -42,8 +54,8 @@ export default function AdminKalams() {
     try {
       setLoading(true);
       const res = await api.getAllKalams()
-      console.log(res)
-
+      setKalams(res.data)
+      console.log("Kalams Fetched!")
       // setKalams(data || []);
     } catch (error) {
       console.error('Error loading kalams:', error);
@@ -139,21 +151,20 @@ export default function AdminKalams() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="text-lg font-semibold text-[var(--dash-text-primary)]">{kalam.title}</h3>
-                          {kalam.theme && (
+                          {kalam.language && (
                             <span className="px-2 py-1 bg-[var(--dash-bg-hover)] text-[var(--dash-text-secondary)] rounded text-xs font-medium border border-[var(--dash-border)]">
-                              {kalam.theme}
+                              {kalam.language}
                             </span>
                           )}
                           <span
-                            className={`dashboard-badge ${
-                              kalam.status === 'approved'
+                            className={`dashboard-badge ${kalam.status === 'approved'
                                 ? 'dashboard-badge-approved'
                                 : kalam.status === 'rejected'
                                   ? 'dashboard-badge-rejected'
                                   : kalam.status === 'under_review'
                                     ? 'dashboard-badge-pending'
                                     : 'dashboard-badge-pending'
-                            }`}
+                              }`}
                           >
                             {kalam.status.replace('_', ' ')}
                           </span>
@@ -161,11 +172,11 @@ export default function AdminKalams() {
 
                         <div className="flex items-center gap-2 text-sm text-[var(--dash-text-secondary)] mb-2">
                           <User className="w-4 h-4" />
-                          {kalam.users?.email || 'Unknown writer'}
+                          {kalam.writer_id || 'Unknown writer'}
                         </div>
 
                         <p className="text-[var(--dash-text-secondary)] text-sm line-clamp-2 mb-2 font-arabic">
-                          {kalam.arabic_text}
+                          {kalam.writing_style}
                         </p>
 
                         <div className="flex items-center gap-4 text-xs text-[var(--dash-text-muted)]">
@@ -234,11 +245,11 @@ export default function AdminKalams() {
 
                   <div>
                     <label className="dashboard-label">
-                      Arabic Text
+                      Content
                     </label>
                     <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                      <p className="text-[var(--dash-text-primary)] whitespace-pre-wrap text-right font-arabic text-lg leading-relaxed">
-                        {selectedKalam.arabic_text}
+                      <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                        {selectedKalam.content}
                       </p>
                     </div>
                   </div>

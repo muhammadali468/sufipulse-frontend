@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export function AvatarMenu() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Get user initials or default
@@ -82,7 +82,7 @@ export function AvatarMenu() {
 
               <div className="py-2">
                 <Link
-                  href={isAdmin ? "/admin" : "/user/dashboard"}
+                  href={user.role.includes("admin") ? "/admin" : "/user/dashboard"}
                   onClick={handleLinkClick}
                   className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
                   role="menuitem"
@@ -91,7 +91,7 @@ export function AvatarMenu() {
                   <span>Dashboard</span>
                 </Link>
 
-                {!isAdmin && (
+                {!user.role.includes("admin") && (
                   <>
                     <Link
                       href="/user/dashboard"

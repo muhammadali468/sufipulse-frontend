@@ -39,17 +39,21 @@ const Login = () => {
         console.log(form)
     }
     const handleLogin = async (e: any) => {
-        e.preventDefault()
-        setLoading(true)
+        e.preventDefault();
+        setLoading(true);
         try {
-            login(form.email, form.password);
-            alert("User logged in")
-            router.push("/")
+            const res = await login(form.email, form.password);
+            console.log(res)
         } catch (err: any) {
-            alert(err.response?.data?.error || err.message);
-        }
-        finally {
-            setLoading(false)
+
+            const message =
+                err?.response?.data?.error ||
+                err?.response?.data?.message ||
+                "Invalid email or password";
+            alert(message);
+
+        } finally {
+            setLoading(false);
         }
     };
     const handleGoogleLogin = async (e: any) => {
