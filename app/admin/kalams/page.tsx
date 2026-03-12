@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 // import { supabase } from '../lib/supabase';
-import { CheckCircle, XCircle, Clock, Eye, User } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, User, File, MessageSquareDashed, BookA } from 'lucide-react';
 import * as api from "../../api/auth"
+import { Kalam } from '@/app/user/dashboard/page';
 // interface Kalam {
 //   id: string;
 //   writer_id: string;
@@ -28,16 +29,16 @@ import * as api from "../../api/auth"
 //   } | null;
 // }
 
-interface Kalam {
-  title: string;
-  user_id: string;
-  id: string;
-  writer_id: string;
-  status: 'submitted' | 'under_review' | 'revision_requested' | 'approved' | 'rejected' | 'draft';
-  language:string;
-  writing_style:string;
-  content:string;
-}
+// interface Kalam {
+//   title: string;
+//   user_id: string;
+//   id: string;
+//   writer_id: string;
+//   status: 'submitted' | 'under review' | 'revision_requested' | 'approved' | 'rejected' | 'draft';
+//   language: string;
+//   writing_style: string;
+//   content: string;
+// }
 
 export default function AdminKalams() {
   const [kalams, setKalams] = useState<Kalam[]>([]);
@@ -55,7 +56,7 @@ export default function AdminKalams() {
       setLoading(true);
       const res = await api.getAllKalams()
       setKalams(res.data)
-      console.log("Kalams Fetched!")
+      console.log("Kalams Fetched!", res.data)
       // setKalams(data || []);
     } catch (error) {
       console.error('Error loading kalams:', error);
@@ -64,31 +65,54 @@ export default function AdminKalams() {
     }
   }
 
-  async function updateKalamStatus(
-    kalamId: string,
-    status: 'approved' | 'rejected' | 'under_review' | 'revision_requested'
-  ) {
+  // async function updateKalamStatus(
+  //   kalamId: string,
+  //   status: 'approved' | 'rejected' | 'under_review' | 'revision_requested'
+  // ) {
+  //   try {
+  //     const { error } = await supabase
+  //       .from('kalams')
+  //       .update({
+  //         status,
+  //         review_notes: reviewNotes || null,
+  //         reviewed_at: new Date().toISOString(),
+  //       })
+  //       .eq('id', kalamId);
+
+  //     if (error) throw error;
+
+  //     alert(`Kalam ${status} successfully`);
+  //     setSelectedKalam(null);
+  //     setReviewNotes('');
+  //     loadKalams();
+  //   } catch (error) {
+  //     console.error('Error updating kalam:', error);
+  //     alert('Failed to update kalam');
+  //   }
+  // }
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    // if (!kalam) return;
+
     try {
-      const { error } = await supabase
-        .from('kalams')
-        .update({
-          status,
-          review_notes: reviewNotes || null,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq('id', kalamId);
+      await api.updateKalamStatus(
+        id,
+        status,
+        reviewNotes
+      );
 
-      if (error) throw error;
+      alert("Status updated");
 
-      alert(`Kalam ${status} successfully`);
       setSelectedKalam(null);
-      setReviewNotes('');
-      loadKalams();
-    } catch (error) {
-      console.error('Error updating kalam:', error);
-      alert('Failed to update kalam');
+      // setContentModal(false);
+
+      loadKalams(); // refresh table
+    } catch (err: any) {
+      alert(err.response?.data?.error || err.message);
     }
-  }
+  };
+
+
 
   const filteredKalams = kalams.filter((kalam) => {
     if (filter === 'all') return true;
@@ -158,12 +182,12 @@ export default function AdminKalams() {
                           )}
                           <span
                             className={`dashboard-badge ${kalam.status === 'approved'
-                                ? 'dashboard-badge-approved'
-                                : kalam.status === 'rejected'
-                                  ? 'dashboard-badge-rejected'
-                                  : kalam.status === 'under_review'
-                                    ? 'dashboard-badge-pending'
-                                    : 'dashboard-badge-pending'
+                              ? 'dashboard-badge-approved'
+                              : kalam.status === 'rejected'
+                                ? 'dashboard-badge-rejected'
+                                : kalam.status === 'under review'
+                                  ? 'dashboard-badge-pending'
+                                  : 'dashboard-badge-pending'
                               }`}
                           >
                             {kalam.status.replace('_', ' ')}
@@ -175,23 +199,32 @@ export default function AdminKalams() {
                           {kalam.writer_id || 'Unknown writer'}
                         </div>
 
-                        <p className="text-[var(--dash-text-secondary)] text-sm line-clamp-2 mb-2 font-arabic">
+                        <div className="flex items-center gap-2 text-sm text-[var(--dash-text-secondary)] mb-2">
+                          <BookA className="w-4 h-4" />
                           {kalam.writing_style}
-                        </p>
+                        </div>
+
+                        
+
+                        {kalam.revision_notes && <div className="flex items-center gap-2 text-sm text-[var(--dash-text-secondary)] mb-2">
+                          <MessageSquareDashed className="w-4 h-4" />
+                          {kalam.revision_notes || 'Unknown writer'}
+                        </div>}
+
 
                         <div className="flex items-center gap-4 text-xs text-[var(--dash-text-muted)]">
-                          <span>Submitted: {new Date(kalam.submitted_at).toLocaleDateString()}</span>
-                          <span>Version: {kalam.version}</span>
-                          {kalam.revision_count > 0 && (
+                          <span>Submitted: {new Date(kalam.updated_at).toLocaleDateString()}</span>
+                          {/* <span>Version: {kalam.version}</span> */}
+                          {/* {kalam.revision_count > 0 && (
                             <span>Revisions: {kalam.revision_count}</span>
-                          )}
+                          )} */}
                         </div>
                       </div>
 
                       <button
                         onClick={() => {
                           setSelectedKalam(kalam);
-                          setReviewNotes(kalam.review_notes || '');
+                          setReviewNotes(kalam.revision_notes || '');
                         }}
                         className="dashboard-btn-primary flex items-center gap-2"
                       >
@@ -231,17 +264,17 @@ export default function AdminKalams() {
                     <p className="text-[var(--dash-text-primary)]">{selectedKalam.title}</p>
                   </div>
 
-                  <div>
+                  {/* <div>
                     <label className="dashboard-label">Writer</label>
                     <p className="text-[var(--dash-text-primary)]">{selectedKalam.users?.email}</p>
-                  </div>
+                  </div> */}
 
-                  {selectedKalam.theme && (
+                  {/* {selectedKalam.theme && (
                     <div>
                       <label className="dashboard-label">Theme</label>
                       <p className="text-[var(--dash-text-primary)]">{selectedKalam.theme}</p>
                     </div>
-                  )}
+                  )} */}
 
                   <div>
                     <label className="dashboard-label">
@@ -254,7 +287,7 @@ export default function AdminKalams() {
                     </div>
                   </div>
 
-                  {selectedKalam.transliteration && (
+                  {/* {selectedKalam.transliteration && (
                     <div>
                       <label className="dashboard-label">
                         Transliteration
@@ -265,20 +298,20 @@ export default function AdminKalams() {
                         </p>
                       </div>
                     </div>
-                  )}
+                  )} */}
 
-                  {selectedKalam.translation && (
+                  {/* {selectedKalam.revision_notes && (
                     <div>
                       <label className="dashboard-label">
-                        Translation
+                        Revision Notes
                       </label>
                       <div className="bg-[var(--dash-bg-primary)] rounded p-4 border border-[var(--dash-border)]">
                         <p className="text-[var(--dash-text-secondary)] whitespace-pre-wrap">
-                          {selectedKalam.translation}
+                          {selectedKalam.revision_notes}
                         </p>
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   <div>
                     <label className="dashboard-label">
@@ -297,21 +330,22 @@ export default function AdminKalams() {
 
               <div className="dashboard-modal-footer">
                 <button
-                  onClick={() => updateKalamStatus(selectedKalam.id, 'approved')}
+                  onClick={() => handleUpdateStatus(selectedKalam.id, 'approved')}
                   className="flex-1 bg-[var(--dash-status-approved)] hover:opacity-90 text-white rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
                 >
                   <CheckCircle className="w-5 h-5" />
                   Approve
                 </button>
                 <button
-                  onClick={() => updateKalamStatus(selectedKalam.id, 'under_review')}
+                  onClick={() => handleUpdateStatus(selectedKalam.id, 'under review')}
                   className="flex-1 dashboard-btn-secondary flex items-center justify-center gap-2"
                 >
                   <Clock className="w-5 h-5" />
                   Under Review
                 </button>
                 <button
-                  onClick={() => updateKalamStatus(selectedKalam.id, 'revision_requested')}
+                  disabled={reviewNotes.length === 0}
+                  onClick={() => handleUpdateStatus(selectedKalam.id, 'revision requested')}
                   className="flex-1 bg-[var(--dash-status-pending)] hover:opacity-90 text-[var(--dash-bg-primary)] rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
                 >
                   Request Revision
@@ -319,7 +353,7 @@ export default function AdminKalams() {
                 <button
                   onClick={() => {
                     if (confirm('Are you sure you want to reject this kalam?')) {
-                      updateKalamStatus(selectedKalam.id, 'rejected');
+                      handleUpdateStatus(selectedKalam.id, 'rejected');
                     }
                   }}
                   className="flex-1 dashboard-btn-danger flex items-center justify-center gap-2"

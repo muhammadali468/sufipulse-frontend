@@ -176,10 +176,10 @@ export default function SignUp() {
                                 onClick={(e) => handleRegister(e)}
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-linear-to-r from-[#D4AF37] to-[#aa8829] text-[#1a2332] py-3 rounded-md font-semibold hover:shadow-lg hover:shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 mt-6"
+                                className="w-full flex justify-center items-center bg-linear-to-r from-[#D4AF37] to-[#aa8829] text-[#1a2332] py-3 rounded-md font-semibold hover:shadow-lg hover:shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 mt-6"
                             >
-                                {loading ? <Loader className='animate-spin' /> : 'Create Account'}
-
+                                    {loading ? <Loader className='animate-spin' /> : 'Create Account'}
+                                
                             </button>
                         </form>
 

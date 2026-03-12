@@ -67,7 +67,7 @@ const VerifyOtpPage = () => {
                                 type="submit"
                                 disabled={loading || otp.length < 6 }
                                 onClick={(e) => handleSubmit(e)}
-                                className="w-full bg-linear-to-r from-[#D4AF37] to-[#aa8829] text-[#1a2332] py-3 rounded-md font-semibold hover:shadow-lg hover:shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                                className="w-full flex justify-center items-center bg-linear-to-r from-[#D4AF37] to-[#aa8829] text-[#1a2332] py-3 rounded-md font-semibold hover:shadow-lg hover:shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                             >
                                 {loading ? <Loader className='animate-spin' /> : 'Verify Email'}
                             </button>

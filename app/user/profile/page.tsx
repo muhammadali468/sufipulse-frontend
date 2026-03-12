@@ -5,10 +5,11 @@ import { Layout } from '../../components/layout/Layout';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { Bell, FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, Loader } from 'lucide-react';
 import * as api from "../../api/auth"
-import { WriterFormData } from '@/app/components/writers/WriterCredentialsForm';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { VocalistProfileType } from '@/app/types/vocalist.types';
+import { WriterFormData } from '@/app/types/writer.types';
 
 interface Submission {
   id: string;
@@ -60,6 +61,23 @@ export default function UserProfile() {
     institutional_acknowledged: false,
 
   });
+  const [vocalist, setVocalist] = useState<VocalistProfileType>({
+    full_name: '',
+    performance_name: '',
+    country: '',
+    city: '',
+    email: '',
+    years_experience: '',
+    vocal_range: '',
+    performance_styles: [],
+    languages_performed: '',
+    musical_training: '',
+    sample_link: '',
+    worked_in_studio: null,
+    willing_editorial_approval: null,
+    accept_producer_coordination: false,
+    accept_framework: false,
+  });
   const [error, setError] = useState('');
   const router = useRouter()
   useEffect(() => {
@@ -73,62 +91,33 @@ export default function UserProfile() {
         setStatus(res.data.profile_status)
         console.log("formData", formData)
       } catch (error) {
+        console.log(formData)
         console.log(error)
       }
     }
+    const loadVocalistProfile = async () => {
+      try {
+        const res = await api.readVocalistProfile();
+
+        setVocalist(prev => ({
+          ...prev,
+          ...res.data
+        }));
+
+        setStatus(res.data.profile_status);
+
+        console.log("formData", res.data);
+
+      } catch (error) {
+        console.log(formData);
+        console.log(error);
+      }
+    };
+
+    loadVocalistProfile();
     loadWriterProfile()
     console.log(formData)
   }, [])
-  //   useEffect(() => {
-  //     loadData();
-  //   }, []);
-
-  //   const loadData = async () => {
-  //     setLoading(true);
-  //     try {
-  //       // Load submissions
-  //       const { data: submissionsData, error: submissionsError } = await supabase
-  //         .from('submission_tracking')
-  //         .select('*')
-  //         .order('created_at', { ascending: false });
-
-  //       if (submissionsError) throw submissionsError;
-  //       setSubmissions(submissionsData || []);
-
-  //       // Load notifications
-  //       const { data: notificationsData, error: notificationsError } = await supabase
-  //         .from('notifications')
-  //         .select('*')
-  //         .order('created_at', { ascending: false })
-  //         .limit(20);
-
-  //       if (notificationsError) throw notificationsError;
-  //       setNotifications(notificationsData || []);
-  //     } catch (error) {
-  //       console.error('Error loading dashboard data:', error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   const markNotificationAsRead = async (notificationId: string) => {
-  //     try {
-  //       const { error } = await supabase
-  //         .from('notifications')
-  //         .update({ read: true, read_at: new Date().toISOString() })
-  //         .eq('id', notificationId);
-
-  //       if (error) throw error;
-
-  //       // Update local state
-  //       setNotifications(notifications.map(n =>
-  //         n.id === notificationId ? { ...n, read: true } : n
-  //       ));
-  //     } catch (error) {
-  //       console.error('Error marking notification as read:', error);
-  //     }
-  //   };
-
   const getStatusColor = (status: string) => {
     const statusLower = status.toLowerCase();
     if (statusLower === 'approved' || statusLower === 'published') return 'text-green-400';
@@ -165,13 +154,13 @@ export default function UserProfile() {
   };
 
   const handleDeleteProfile = async () => {
-      try {
-        const res = await api.deleteWriterProfile();
-        alert(res.data.message)
-      } catch (error) {
-        console.log(error)
-      }
+    try {
+      const res = await api.deleteWriterProfile();
+      alert(res.data.message)
+    } catch (error) {
+      console.log(error)
     }
+  }
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
@@ -218,7 +207,7 @@ export default function UserProfile() {
                   }`}
               >
                 <FileText className="w-5 h-5 inline-block mr-2" />
-                Writer Profile
+                Profile
                 {activeTab === 'submissions' && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
                 )}
@@ -253,16 +242,16 @@ export default function UserProfile() {
                 {/* Submissions Tab */}
                 {activeTab === 'submissions' && (
                   <div className="space-y-4">
-                    {!formData ? (
+                    {!formData || formData.email === "" ? (
                       <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
                         <FileText className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
                         <h3 className="text-xl font-semibold text-white mb-2">No Profile yet</h3>
                         <p className="text-neutral-400 mb-4">
                           Your profile will appear here once you apply or submit form.
                         </p>
-                        <Link className='bg-amber-400 text-black! px-4 py-2 rounded-lg' href={"/writers/#submission"}>
-                          Submit Writer Profile
-                        </Link>
+                        {/* <Link className='bg-amber-400 text-black! px-4 py-2 rounded-lg' href={"/writers/#submission"}>
+                          Submit Profile
+                        </Link> */}
 
                       </div>
                     ) : (
@@ -586,7 +575,7 @@ export default function UserProfile() {
                               'Save Changes'
                             }
                           </button>
-                          
+
 
                         </div>
                       </form>

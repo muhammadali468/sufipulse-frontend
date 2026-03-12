@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle, FileCheck, Clock, Mail, Home, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
+// import { useNavigate } from 'react-router-dom';
 
 interface VocalistSubmissionSuccessModalProps {
   onClose: () => void;
@@ -8,7 +9,7 @@ interface VocalistSubmissionSuccessModalProps {
 }
 
 export function VocalistSubmissionSuccessModal({ onClose, submissionId }: VocalistSubmissionSuccessModalProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [countdown, setCountdown] = useState(10);
 
   useEffect(() => {
@@ -24,13 +25,13 @@ export function VocalistSubmissionSuccessModal({ onClose, submissionId }: Vocali
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
     } else {
-      navigate('/');
+      router.push('/');
     }
-  }, [countdown, navigate]);
+  }, [countdown]);
 
   const handleReturnHome = () => {
     document.body.style.overflow = '';
-    navigate('/');
+    router.push('/');
   };
 
   return (

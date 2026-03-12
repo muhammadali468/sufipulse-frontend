@@ -1,58 +1,66 @@
 import { useState } from 'react';
-import { sanitizeInput } from '../../lib/sanitization';
+import DOMPurify from "dompurify";
 import { VocalistSubmissionSuccessModal } from './VocalistSubmissionSuccessModal';
-
-interface VocalistFormData {
-  fullName: string;
-  performanceName: string;
-  country: string;
-  city: string;
-  email: string;
-  yearsExperience: string;
-  vocalRange: string;
-  performanceStyle: string[];
-  languagesPerformed: string;
-  musicalTraining: string;
-  performanceLink: string;
-  studioRecordingExperience: boolean | null;
-  workflowAlignment: boolean | null;
-  interpretationAcknowledgment: boolean;
-  frameworkAcknowledgment: boolean;
-}
+import * as api from "../../api/auth"
+import { useAuth } from '@/app/contexts/AuthContext';
+import Link from 'next/link';
+import { Loader } from 'lucide-react';
+import { VocalistProfileType } from '@/app/types/vocalist.types';
+import { useRouter } from 'next/navigation';
 
 export function VocalistCredentialsForm() {
+  const { user } = useAuth();
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
   const [submissionId] = useState(`SP-VOC-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`);
-  const [formData, setFormData] = useState<VocalistFormData>({
-    fullName: '',
-    performanceName: '',
+  const [formData, setFormData] = useState<VocalistProfileType>({
+    full_name: '',
+    performance_name: '',
     country: '',
     city: '',
     email: '',
-    yearsExperience: '',
-    vocalRange: '',
-    performanceStyle: [],
-    languagesPerformed: '',
-    musicalTraining: '',
-    performanceLink: '',
-    studioRecordingExperience: null,
-    workflowAlignment: null,
-    interpretationAcknowledgment: false,
-    frameworkAcknowledgment: false,
+    years_experience: '',
+    vocal_range: '',
+    performance_styles: [],
+    languages_performed: '',
+    musical_training: '',
+    sample_link: '',
+    worked_in_studio: null,
+    willing_editorial_approval: null,
+    accept_producer_coordination: false,
+    accept_framework: false,
   });
 
   const handleCheckboxChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      performanceStyle: prev.performanceStyle.includes(value)
-        ? prev.performanceStyle.filter(s => s !== value)
-        : [...prev.performanceStyle, value]
+      performance_styles: prev.performance_styles.includes(value)
+        ? prev.performance_styles.filter(s => s !== value)
+        : [...prev.performance_styles, value]
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    setSubmitted(true);
+    const payload = {
+      ...formData,
+      languages_performed: formData.languages_performed
+        .trim()
+        .split(/[,\s]+/)
+        .filter(Boolean) // split by space
+    };
+    try {
+      setLoading(true);
+
+      const res = await api.createVocalistProfile(payload);
+      alert("Vocalist profile Submitted");
+      router.push('/user/profile')
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -79,8 +87,8 @@ export function VocalistCredentialsForm() {
                 <input
                   type="text"
                   required
-                  value={formData.fullName}
-                  onChange={e => setFormData({ ...formData, fullName: sanitizeInput(e.target.value) })}
+                  value={formData.full_name}
+                  onChange={e => setFormData({ ...formData, full_name: DOMPurify.sanitize(e.target.value) })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -89,8 +97,8 @@ export function VocalistCredentialsForm() {
                 <label className="block text-neutral-400 text-xs mb-1.5">Performance Name (if applicable)</label>
                 <input
                   type="text"
-                  value={formData.performanceName}
-                  onChange={e => setFormData({ ...formData, performanceName: sanitizeInput(e.target.value) })}
+                  value={formData.performance_name}
+                  onChange={e => setFormData({ ...formData, performance_name: DOMPurify.sanitize(e.target.value) })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -120,7 +128,7 @@ export function VocalistCredentialsForm() {
                   type="text"
                   required
                   value={formData.city}
-                  onChange={e => setFormData({ ...formData, city: sanitizeInput(e.target.value) })}
+                  onChange={e => setFormData({ ...formData, city: DOMPurify.sanitize(e.target.value) })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -140,8 +148,8 @@ export function VocalistCredentialsForm() {
                 <label className="block text-neutral-400 text-xs mb-1.5">Years of Vocal Performance</label>
                 <select
                   required
-                  value={formData.yearsExperience}
-                  onChange={e => setFormData({ ...formData, yearsExperience: e.target.value })}
+                  value={formData.years_experience}
+                  onChange={e => setFormData({ ...formData, years_experience: e.target.value })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 >
                   <option value="">Select experience</option>
@@ -162,8 +170,8 @@ export function VocalistCredentialsForm() {
                 <label className="block text-neutral-400 text-xs mb-1.5">Vocal Range</label>
                 <select
                   required
-                  value={formData.vocalRange}
-                  onChange={e => setFormData({ ...formData, vocalRange: e.target.value })}
+                  value={formData.vocal_range}
+                  onChange={e => setFormData({ ...formData, vocal_range: e.target.value })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 >
                   <option value="">Select vocal range</option>
@@ -191,7 +199,7 @@ export function VocalistCredentialsForm() {
                     <label key={style} className="flex items-center gap-2 text-neutral-300 text-sm">
                       <input
                         type="checkbox"
-                        checked={formData.performanceStyle.includes(style)}
+                        checked={formData.performance_styles.includes(style)}
                         onChange={() => handleCheckboxChange(style)}
                         className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                       />
@@ -206,8 +214,8 @@ export function VocalistCredentialsForm() {
                 <input
                   type="text"
                   required
-                  value={formData.languagesPerformed}
-                  onChange={e => setFormData({ ...formData, languagesPerformed: sanitizeInput(e.target.value) })}
+                  value={formData.languages_performed}
+                  onChange={e => setFormData({ ...formData, languages_performed: DOMPurify.sanitize(e.target.value) })}
                   placeholder="e.g., Urdu, Arabic, Persian, English"
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
@@ -218,19 +226,20 @@ export function VocalistCredentialsForm() {
                 <textarea
                   required
                   rows={4}
-                  value={formData.musicalTraining}
-                  onChange={e => setFormData({ ...formData, musicalTraining: sanitizeInput(e.target.value) })}
+                  value={formData.musical_training}
+                  onChange={e => setFormData({ ...formData, musical_training: DOMPurify.sanitize(e.target.value) })}
                   placeholder="Brief overview of vocal training, teachers, or structured practice"
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-neutral-400 text-xs mb-1.5">Performance Sample Link (optional)</label>
+                <label className="block text-neutral-400 text-xs mb-1.5">Performance Sample Link</label>
+                <label className="block text-neutral-400 text-xs mb-1.5">Please upload the sample file on YouTube and share the link:</label>
                 <input
                   type="url"
-                  value={formData.performanceLink}
-                  onChange={e => setFormData({ ...formData, performanceLink: e.target.value })}
+                  value={formData.sample_link}
+                  onChange={e => setFormData({ ...formData, sample_link: e.target.value })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -253,8 +262,8 @@ export function VocalistCredentialsForm() {
                       type="radio"
                       name="studioExperience"
                       required
-                      checked={formData.studioRecordingExperience === true}
-                      onChange={() => setFormData({ ...formData, studioRecordingExperience: true })}
+                      checked={formData.worked_in_studio === true}
+                      onChange={() => setFormData({ ...formData, worked_in_studio: true })}
                       className="w-4 h-4"
                     />
                     Yes
@@ -264,8 +273,8 @@ export function VocalistCredentialsForm() {
                       type="radio"
                       name="studioExperience"
                       required
-                      checked={formData.studioRecordingExperience === false}
-                      onChange={() => setFormData({ ...formData, studioRecordingExperience: false })}
+                      checked={formData.worked_in_studio === false}
+                      onChange={() => setFormData({ ...formData, worked_in_studio: false })}
                       className="w-4 h-4"
                     />
                     No
@@ -281,8 +290,8 @@ export function VocalistCredentialsForm() {
                   <input
                     type="checkbox"
                     required
-                    checked={formData.workflowAlignment === true}
-                    onChange={e => setFormData({ ...formData, workflowAlignment: e.target.checked ? true : null })}
+                    checked={formData.willing_editorial_approval === true}
+                    onChange={e => setFormData({ ...formData, willing_editorial_approval: e.target.checked ? true : null })}
                     className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                   />
                   Yes
@@ -297,8 +306,8 @@ export function VocalistCredentialsForm() {
                   <input
                     type="checkbox"
                     required
-                    checked={formData.interpretationAcknowledgment}
-                    onChange={e => setFormData({ ...formData, interpretationAcknowledgment: e.target.checked })}
+                    checked={formData.accept_producer_coordination}
+                    onChange={e => setFormData({ ...formData, accept_producer_coordination: e.target.checked })}
                     className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                   />
                   Yes
@@ -322,8 +331,8 @@ export function VocalistCredentialsForm() {
               <input
                 type="checkbox"
                 required
-                checked={formData.frameworkAcknowledgment}
-                onChange={e => setFormData({ ...formData, frameworkAcknowledgment: e.target.checked })}
+                checked={formData.accept_framework}
+                onChange={e => setFormData({ ...formData, accept_framework: e.target.checked })}
                 className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded mt-0.5 shrink-0"
               />
               <span>I acknowledge and accept the institutional performance framework.</span>
@@ -333,12 +342,24 @@ export function VocalistCredentialsForm() {
       </div>
 
       <div className="mt-8 flex justify-end">
-        <button
-          type="submit"
-          className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors"
+        {user ? <button
+          // type="submit"
+          onClick={handleSubmit}
+          disabled={!user.is_verified || !formData.accept_producer_coordination || !formData.accept_framework}
+          className="cursor-pointer px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Submit Vocalist Profile
-        </button>
+          {loading ?
+            <Loader className='animate-spin' />
+            :
+            'Submit Vocalist Profile'
+          }
+        </button> :
+          <Link
+            className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950! font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            href="/login">
+            Login
+          </Link>
+        }
       </div>
     </form>
   );

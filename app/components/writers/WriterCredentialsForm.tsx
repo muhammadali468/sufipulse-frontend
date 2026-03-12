@@ -1,35 +1,12 @@
 import { useEffect, useState } from 'react';
 import DOMPurify from "dompurify";
-// import { DOMPurify.sanitize } from '../../lib/sanitization';
 import { WriterSubmissionSuccessModal } from './WriterSubmissionSuccessModal';
-// import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import * as api from "../../api/auth"
 import { useRouter } from 'next/navigation';
 import { Loader } from 'lucide-react';
-
-export interface WriterFormData {
-  full_name: string;
-  pen_name: string;
-  country: string;
-  city: string;
-  email: string;
-  years_experience: string;
-  primary_languages: any;
-  writing_styles: string[];
-  literary_background: string;
-  thematic_focus: string;
-  sample_kalam: string;
-  previous_publications: string;
-  editorial_review_experience: boolean | null;
-  willing_editorial_process: boolean | null;
-  revision_acknowledged: boolean;
-  institutional_acknowledged: boolean;
-  profile_status?: string;
-  id?: string;
-  created_at?: string;
-}
+import { WriterFormData } from '@/app/types/writer.types';
 
 export function WriterCredentialsForm() {
   const { user } = useAuth();
@@ -93,66 +70,6 @@ export function WriterCredentialsForm() {
     }
   };
 
-  // useEffect(() => {
-  //   const handleLoadWriterProfile = async () => {
-  //     try {
-  //       setLoading(true)
-  //       const res = await api.readWriterProfile()
-  //       if (res.data.status === 401 || res.data.status === 400) {
-  //         router.push("/login")
-  //       }
-  //       console.log(res)
-  //       alert("Writer profile Submitted")
-  //     } catch (error) {
-  //       console.log(error)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-  // }, [])
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setError('');
-  //   setSubmitting(true);
-
-  //   try {
-  //     // Get current user's public ID if authenticated
-  //     let userId: string | null = null;
-  //     if (user) {
-  //       const { data: publicUser } = await supabase
-  //         .from('users')
-  //         .select('id')
-  //         .eq('auth_user_id', user.id)
-  //         .maybeSingle();
-  //       userId = publicUser?.id || null;
-  //     }
-
-  //     // Insert application into database
-  //     const { error: insertError } = await supabase
-  //       .from('writer_applications')
-  //       .insert({
-  //         user_id: userId,
-  //         email: formData.email,
-  //         pen_name: formData.penName || formData.fullName,
-  //         bio: `${formData.literaryBackground}\n\nThematic Focus: ${formData.thematicFocus}\n\nYears Writing: ${formData.yearsWriting}\nLanguages: ${formData.primaryLanguages}\nStyles: ${formData.writingStyle.join(', ')}`,
-  //         sample_work: formData.sampleWork,
-  //         previous_publications: formData.previousPublications || null,
-  //         status: 'pending',
-  //         submitted_at: new Date().toISOString(),
-  //       });
-
-  //     if (insertError) throw insertError;
-
-  //     setSubmitted(true);
-  //   } catch (err) {
-  //     console.error('Error submitting writer application:', err);
-  //     setError('Failed to submit application. Please try again.');
-  //   } finally {
-  //     setSubmitting(false);
-  //   }
-  // };
-
   if (submitted) {
     return (
       <WriterSubmissionSuccessModal
@@ -162,7 +79,6 @@ export function WriterCredentialsForm() {
     );
   }
   const [text, setText] = useState("");
-  // const [array, setArray] = useState([]);
   const handleLanguageChange = (e: any) => {
     const value = e.target.value;
     setText(value);
@@ -196,7 +112,7 @@ export function WriterCredentialsForm() {
                   required
                   maxLength={200}
                   value={formData.full_name}
-                  // onChange={e => setFormData({ ...formData, fullName: DOMPurify.sanitize(e.target.value) })}
+                  onChange={e => setFormData({ ...formData, full_name: DOMPurify.sanitize(e.target.value) })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>

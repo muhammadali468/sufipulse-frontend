@@ -44,7 +44,7 @@ export interface KalamUnderDraft {
   content: string,
 }
 
-interface Kalam {
+export interface Kalam {
   title: string;
   user_id: string;
   id: string;
@@ -54,6 +54,8 @@ interface Kalam {
   writing_style: string;
   content: string;
   revision_notes?:string;
+  created_at?:any;
+  updated_at?:any;
 }
 
 export default function UserDashboard() {

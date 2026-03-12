@@ -1,6 +1,8 @@
 import axios from "axios";
-import { WriterFormData } from "../components/writers/WriterCredentialsForm";
+// import { WriterFormData } from "../components/writers/WriterCredentialsForm";
 import { KalamUnderDraft } from "../user/dashboard/page";
+import { VocalistProfileType } from "../types/vocalist.types";
+import { WriterFormData } from "../types/writer.types";
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 axios.defaults.withCredentials = true;
 
@@ -123,11 +125,29 @@ export const getAllKalams = () => {
 export const updateKalam = (id: string, data: any) => {
     return api.put(`${API_URL}/kalam/${id}`, data);
 };
-
 export const deleteKalam = (id: string) => {
     return api.delete(`${API_URL}/kalam/${id}`);
 }
-
 export const updateKalamStatus = (id: string, status: string, revision_notes:string | null) => {
     return api.patch(`${API_URL}/kalam/update-status/${id}`, {status, revision_notes});
+}
+
+export const createVocalistProfile = (form: VocalistProfileType) => {
+    return api.post(`${API_URL}/vocalist/create`, form)
+}
+
+export const readVocalistProfile = () => {
+    return api.get(`${API_URL}/vocalist/read-profile`)
+}
+
+export const updateVocalistProfile = (form: VocalistProfileType) => {
+    return api.post(`${API_URL}/vocalist/update-profile`, form)
+}
+
+export const deleteVocalistProfile = () => {
+    return api.delete(`${API_URL}/vocalist/delete-profile`)
+}
+
+export const getAllVocalists = () => {
+    return api.get(`${API_URL}/vocalist/get-all`)
 }
