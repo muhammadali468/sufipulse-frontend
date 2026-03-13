@@ -53,16 +53,15 @@ export interface Kalam {
   language: string;
   writing_style: string;
   content: string;
-  revision_notes?: string;
-  created_at?: any;
-  updated_at?: any;
+  revision_notes?:string;
+  created_at?:any;
+  updated_at?:any;
 }
 
-export default function UserDashboard() {
+export default function SadaSubmission() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
-  const { user, profileStatus } = useAuth();
   const [activeTab, setActiveTab] = useState<'submissions' | 'notifications' | 'archives'>('submissions');
   const [status, setStatus] = useState("")
   const [editingKalam, setEditingKalam] = useState<Kalam | null>(null);
@@ -75,96 +74,6 @@ export default function UserDashboard() {
   })
   const [kalams, setKalams] = useState<Kalam[]>([])
   const [contentModal, setContentModal] = useState(false)
-  // const [writerProfile,setWriterProfile] = useState()
-  const [error, setError] = useState('');
-  const router = useRouter()
-  // console.log("status", profileStatus)
-  //   useEffect(() => {
-  //     loadData();
-  //   }, []);
-
-  //   const loadData = async () => {
-  //     setLoading(true);
-  //     try {
-  //       // Load submissions
-  //       const { data: submissionsData, error: submissionsError } = await supabase
-  //         .from('submission_tracking')
-  //         .select('*')
-  //         .order('created_at', { ascending: false });
-
-  //       if (submissionsError) throw submissionsError;
-  //       setSubmissions(submissionsData || []);
-
-  //       // Load notifications
-  //       const { data: notificationsData, error: notificationsError } = await supabase
-  //         .from('notifications')
-  //         .select('*')
-  //         .order('created_at', { ascending: false })
-  //         .limit(20);
-
-  //       if (notificationsError) throw notificationsError;
-  //       setNotifications(notificationsData || []);
-  //     } catch (error) {
-  //       console.error('Error loading dashboard data:', error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   const markNotificationAsRead = async (notificationId: string) => {
-  //     try {
-  //       const { error } = await supabase
-  //         .from('notifications')
-  //         .update({ read: true, read_at: new Date().toISOString() })
-  //         .eq('id', notificationId);
-
-  //       if (error) throw error;
-
-  //       // Update local state
-  //       setNotifications(notifications.map(n =>
-  //         n.id === notificationId ? { ...n, read: true } : n
-  //       ));
-  //     } catch (error) {
-  //       console.error('Error marking notification as read:', error);
-  //     }
-  //   };
-
-  const getStatusColor = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'approved' || statusLower === 'published') return 'text-green-400';
-    if (statusLower === 'rejected' || statusLower === 'declined') return 'text-red-400';
-    if (statusLower === 'under_review') return 'text-blue-400';
-    if (statusLower === 'revision_requested') return 'text-yellow-400';
-    return 'text-neutral-400';
-  };
-
-  const getStatusIcon = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'approved' || statusLower === 'published') return <CheckCircle className="w-5 h-5" />;
-    if (statusLower === 'rejected' || statusLower === 'declined') return <XCircle className="w-5 h-5" />;
-    if (statusLower === 'under_review') return <Eye className="w-5 h-5" />;
-    if (statusLower === 'revision_requested') return <AlertCircle className="w-5 h-5" />;
-    return <Clock className="w-5 h-5" />;
-  };
-
-  const formatSubmissionType = (type: string) => {
-    return type
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-
   const [writer, setWriter] = useState({
     languages: [],
     writing_styles: [],
@@ -178,19 +87,19 @@ export default function UserDashboard() {
       console.log(error)
     }
   }
-  const loadWriterProfile = async () => {
-    try {
-      const res = await api.readWriterProfile();
-      setStatus(res.data.profile_status)
-      setWriter({
-        languages: res.data.primary_languages,
-        writing_styles: res.data.writing_styles
-      })
-    } catch (error) {
-      console.log(error)
-    }
-  }
   useEffect(() => {
+    const loadWriterProfile = async () => {
+      try {
+        const res = await api.readWriterProfile();
+        setStatus(res.data.profile_status)
+        setWriter({
+          languages: res.data.primary_languages,
+          writing_styles: res.data.writing_styles
+        })
+      } catch (error) {
+        console.log(error)
+      }
+    }
 
     loadWriterProfile()
     loadWriterKalams()
@@ -225,44 +134,27 @@ export default function UserDashboard() {
     setContentModal(true)
     // console.log(showContent)
   }
-  // const handleSubmit = async (e: any) => {
-  //   console.log("kalam", kalams)
-  //   e.preventDefault()
-  //   setLoading(true)
-  //   try {
-  //     const res = await api.createKalam(kalamUnderDraft);
-  //     loadWriterKalams()
-  //     alert("Kalam submitted!")
-  //     // router.push("/")
-  //     setActiveTab("archives")
-  //   } catch (err: any) {
-  //     alert(err.response?.data?.error || err.message);
-  //   }
-  //   finally {
-  //     setLoading(false)
-  //   }
-  // };
 
   const handleUpdateStatus = async (kalam: Kalam, status: string) => {
-    if (!kalam) return;
+  if (!kalam) return;
 
-    try {
-      await api.updateKalamStatus(
-        kalam.id,
-        status,
-        null
-      );
+  try {
+    await api.updateKalamStatus(
+      kalam.id,
+      status,
+      null
+    );
 
-      alert("Status updated");
+    alert("Status updated");
 
-      setKalam(null);
-      setContentModal(false);
+    setKalam(null);
+    setContentModal(false);
 
-      loadWriterKalams(); // refresh table
-    } catch (err: any) {
-      alert(err.response?.data?.error || err.message);
-    }
-  };
+    loadWriterKalams(); // refresh table
+  } catch (err: any) {
+    alert(err.response?.data?.error || err.message);
+  }
+};
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -296,15 +188,7 @@ export default function UserDashboard() {
     }))
 
   }
-  const unreadCount = notifications.filter(n => !n.read).length;
-  //   const handleCheckboxChange = (value: string) => {
-  //   setKalam(prev => ({
-  //     ...prev,
-  //     writing_styles: prev.writing_styles.includes(value)
-  //       ? prev.writing_styles.filter(s => s !== value)
-  //       : [...prev.writing_styles, value],
-  //   }));
-  // };
+
   return (
     <Layout>
       <PageContainer>
@@ -332,24 +216,7 @@ export default function UserDashboard() {
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
                 )}
               </button>
-              {/* <button
-                onClick={() => setActiveTab('notifications')}
-                className={`pb-4 px-4 font-semibold transition-colors relative ${activeTab === 'notifications'
-                  ? 'text-white'
-                  : 'text-neutral-400 hover:text-neutral-300'
-                  }`}
-              >
-                <Bell className="w-5 h-5 inline-block mr-2" />
-                Notifications
-                {unreadCount > 0 && (
-                  <span className="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded-full">
-                    {unreadCount}
-                  </span>
-                )}
-                {activeTab === 'notifications' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
-                )}
-              </button> */}
+              
               <button
                 onClick={() => setActiveTab('archives')}
                 className={`pb-4 px-4 font-semibold transition-colors relative ${activeTab === 'archives'
@@ -458,154 +325,89 @@ export default function UserDashboard() {
                   </div>
                 )}
 
-                {/* Notifications Tab */}
-                {/* {activeTab === 'notifications' && (
-                  <div className="space-y-4">
-                    {notifications.length === 0 ? (
-                      <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
-                        <Bell className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">No notifications</h3>
-                        <p className="text-neutral-400">
-                          You will receive notifications here when there are updates to your submissions.
-                        </p>
-                      </div>
-                    ) : (
-                      notifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={`bg-neutral-900/50 border rounded-lg p-6 transition-colors ${notification.read
-                            ? 'border-neutral-800'
-                            : 'border-blue-500/30 bg-blue-500/5'
-                            }`}
-                        >
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h3 className="text-lg font-semibold text-white">
-                                  {notification.title}
-                                </h3>
-                                {!notification.read && (
-                                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                )}
-                              </div>
-                              {notification.submission_reference && (
-                                <p className="text-xs text-neutral-500 mb-2">
-                                  {notification.submission_reference}
-                                </p>
-                              )}
-                            </div>
-                            <span className="text-sm text-neutral-400 whitespace-nowrap ml-4">
-                              {formatDate(notification.created_at)}
-                            </span>
-                          </div>
-
-                          <p className="text-neutral-300 mb-4">{notification.message}</p>
-
-                          <div className="flex gap-3">
-                            {notification.action_url && (
-                              <a
-                                href={notification.action_url}
-                                className="px-4 py-2 bg-white text-black font-semibold rounded hover:bg-neutral-200 transition-colors text-sm"
-                              >
-                                View Details
-                              </a>
-                            )}
-                            {!notification.read && (
-                              <button
-                                // onClick={() => markNotificationAsRead(notification.id)}
-                                className="px-4 py-2 border border-neutral-700 text-neutral-300 font-semibold rounded hover:bg-neutral-800 transition-colors text-sm"
-                              >
-                                Mark as Read
-                              </button>
-                            )}
+                
+                {contentModal && kalam ?
+                    <div className="dashboard-modal-overlay">
+                      <div className="dashboard-modal">
+                        <div className="dashboard-modal-header">
+                          <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">Kalam Review</h2>
+                            <button
+                              onClick={() => {
+                                // setSelectedKalam(null);
+                                // setReviewNotes('');
+                                setContentModal(false)
+                              }}
+                              className="text-[var(--dash-text-muted)] hover:text-[var(--dash-text-secondary)]"
+                            >
+                              <XCircle className="w-6 h-6" />
+                            </button>
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
-                )} */}
-                {/* Archive Tab */}
 
-                {contentModal && kalam ?
-                  <div className="dashboard-modal-overlay">
-                    <div className="dashboard-modal">
-                      <div className="dashboard-modal-header">
-                        <div className="flex items-center justify-between">
-                          <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">Kalam Review</h2>
+                        <div className="dashboard-modal-body overflow-y-scroll scrollbar-hide">
+                          <div className="space-y-4">
+
+                            {kalam.revision_notes ?
+                              <div>
+                                <label className="dashboard-label">
+                                  Admin Notes
+                                </label>
+                                <div className="bg-red-600 rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                  <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                    {kalam.revision_notes}
+                                  </p>
+                                </div>
+                              </div>
+                              : ""}
+                            <div>
+                              <label className="dashboard-label">
+                                Title
+                              </label>
+                              <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                  {kalam.title}
+                                </p>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="dashboard-label">
+                                Content
+                              </label>
+                              <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                  {kalam.content}
+                                </p>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+
+                        <div className="dashboard-modal-footer">
                           <button
-                            onClick={() => {
-                              // setSelectedKalam(null);
-                              // setReviewNotes('');
-                              setContentModal(false)
-                            }}
-                            className="text-[var(--dash-text-muted)] hover:text-[var(--dash-text-secondary)]"
+                            disabled={kalam.status !== "draft"}
+                            onClick={() => handleUpdateStatus(kalam, 'under review')}
+                            className="flex-1 disabled:opacity-50 bg-[var(--dash-status-approved)] hover:opacity-90 text-white rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
                           >
-                            <XCircle className="w-6 h-6" />
+                            {kalam.status === "draft" ? <CheckCircle className="w-5 h-5" /> : ""}
+                            {kalam.status === "draft" ? "Submit Kalam" : kalam.status === "under review" ? "Under Review" : "Submitted"}
+                          </button>
+                          <button
+                            disabled={kalam.status !== "draft"}
+                            onClick={() => {
+                              handleDelete(kalam.id)
+                            }}
+                            className="flex-1 disabled:opacity-50 dashboard-btn-danger flex items-center justify-center gap-2"
+                          >
+                            <XCircle className="w-5 h-5" />
+                            Delete Kalam
                           </button>
                         </div>
                       </div>
-
-                      <div className="dashboard-modal-body overflow-y-scroll scrollbar-hide">
-                        <div className="space-y-4">
-
-                          {kalam.revision_notes ?
-                            <div>
-                              <label className="dashboard-label">
-                                Admin Notes
-                              </label>
-                              <div className="bg-red-600 rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                                <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                  {kalam.revision_notes}
-                                </p>
-                              </div>
-                            </div>
-                            : ""}
-                          <div>
-                            <label className="dashboard-label">
-                              Title
-                            </label>
-                            <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                              <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                {kalam.title}
-                              </p>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="dashboard-label">
-                              Content
-                            </label>
-                            <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                              <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                {kalam.content}
-                              </p>
-                            </div>
-                          </div>
-
-                        </div>
-                      </div>
-
-                      <div className="dashboard-modal-footer">
-                        <button
-                          disabled={kalam.status !== "draft"}
-                          onClick={() => handleUpdateStatus(kalam, 'under review')}
-                          className="flex-1 disabled:opacity-50 bg-[var(--dash-status-approved)] hover:opacity-90 text-white rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
-                        >
-                          {kalam.status === "draft" ? <CheckCircle className="w-5 h-5" /> : ""}
-                          {kalam.status === "draft" ? "Submit Kalam" : kalam.status === "under review" ? "Under Review" : "Submitted"}
-                        </button>
-                        <button
-                          disabled={kalam.status !== "draft"}
-                          onClick={() => {
-                            handleDelete(kalam.id)
-                          }}
-                          className="flex-1 disabled:opacity-50 dashboard-btn-danger flex items-center justify-center gap-2"
-                        >
-                          <XCircle className="w-5 h-5" />
-                          Delete Kalam
-                        </button>
-                      </div>
                     </div>
-                  </div>
+                  
+
                   : ""}
 
                 {activeTab === 'archives' && (
@@ -647,8 +449,16 @@ export default function UserDashboard() {
                                 >
                                   Edit
                                 </button>
+
+
+
                               </td>
                             </tr>
+
+
+
+
+
                           </>
                         ))}
                       </tbody>

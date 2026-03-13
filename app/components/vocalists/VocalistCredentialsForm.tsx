@@ -52,7 +52,6 @@ export function VocalistCredentialsForm() {
     };
     try {
       setLoading(true);
-
       const res = await api.createVocalistProfile(payload);
       alert("Vocalist profile Submitted");
       router.push('/user/profile')

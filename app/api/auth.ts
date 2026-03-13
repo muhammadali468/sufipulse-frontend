@@ -137,15 +137,15 @@ export const createVocalistProfile = (form: VocalistProfileType) => {
 }
 
 export const readVocalistProfile = () => {
-    return api.get(`${API_URL}/vocalist/read-profile`)
+    return api.get(`${API_URL}/vocalist/read`)
 }
 
 export const updateVocalistProfile = (form: VocalistProfileType) => {
-    return api.post(`${API_URL}/vocalist/update-profile`, form)
+    return api.patch(`${API_URL}/vocalist/update`, form)
 }
 
 export const deleteVocalistProfile = () => {
-    return api.delete(`${API_URL}/vocalist/delete-profile`)
+    return api.delete(`${API_URL}/vocalist/delete`)
 }
 
 export const getAllVocalists = () => {
