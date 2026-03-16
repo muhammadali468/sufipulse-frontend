@@ -4,7 +4,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 // import { supabase } from '../lib/supabase';
 import { CheckCircle, XCircle, Clock, Eye, User, File, MessageSquareDashed, BookA } from 'lucide-react';
 import * as api from "../../api/auth"
-import { Kalam } from '@/app/user/dashboard/page';
+import { Kalam } from '@/app/user/writer/dashboard/page';
 // interface Kalam {
 //   id: string;
 //   writer_id: string;
@@ -203,8 +203,6 @@ export default function AdminKalams() {
                           <BookA className="w-4 h-4" />
                           {kalam.writing_style}
                         </div>
-
-                        
 
                         {kalam.revision_notes && <div className="flex items-center gap-2 text-sm text-[var(--dash-text-secondary)] mb-2">
                           <MessageSquareDashed className="w-4 h-4" />

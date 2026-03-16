@@ -1,6 +1,6 @@
 import axios from "axios";
 // import { WriterFormData } from "../components/writers/WriterCredentialsForm";
-import { KalamUnderDraft } from "../user/dashboard/page";
+import { KalamUnderDraft } from "../user/writer/dashboard/page";
 import { VocalistProfileType } from "../types/vocalist.types";
 import { WriterFormData } from "../types/writer.types";
 const API_URL = process.env.NEXT_PUBLIC_API_URL
@@ -98,6 +98,7 @@ export const logout = () => {
 export const refreshToken = () => {
     return api.post(`${API_URL}/auth/refresh-token`)
 }
+// WRITER
 export const createWriterProfile = (form: WriterFormData) => {
     return api.post(`${API_URL}/writer/create-profile`, form)
 }
@@ -107,12 +108,16 @@ export const readWriterProfile = () => {
 export const updateWriterProfile = (form: WriterFormData) => {
     return api.post(`${API_URL}/writer/update-profile`, form)
 }
+export const updateWriterStatus = (id: string, status: string) => {
+    return api.patch(`${API_URL}/writer/update-status/${id}`, { status })
+}
 export const deleteWriterProfile = () => {
     return api.delete(`${API_URL}/writer/delete-profile`)
 }
 export const getAllWriter = () => {
     return api.get(`${API_URL}/writer/get-all`)
 }
+// KALAMS
 export const createKalam = (kalam: KalamUnderDraft) => {
     return api.post(`${API_URL}/kalam/create`, kalam)
 }
@@ -131,7 +136,7 @@ export const deleteKalam = (id: string) => {
 export const updateKalamStatus = (id: string, status: string, revision_notes:string | null) => {
     return api.patch(`${API_URL}/kalam/update-status/${id}`, {status, revision_notes});
 }
-
+// Vocalist
 export const createVocalistProfile = (form: VocalistProfileType) => {
     return api.post(`${API_URL}/vocalist/create`, form)
 }
@@ -143,11 +148,39 @@ export const readVocalistProfile = () => {
 export const updateVocalistProfile = (form: VocalistProfileType) => {
     return api.patch(`${API_URL}/vocalist/update`, form)
 }
+export const updateVocalistStatus = (id: string, status: string) => {
+    return api.patch(`${API_URL}/vocalist/update-status/${id}`, { status })
+}
 
 export const deleteVocalistProfile = () => {
     return api.delete(`${API_URL}/vocalist/delete`)
 }
 
 export const getAllVocalists = () => {
-    return api.get(`${API_URL}/vocalist/get-all`)
+    return api.get(`${API_URL}/vocalist/all`)
+}
+
+// Sadas
+export const createSada = (sada: any) => {
+    return api.post(`${API_URL}/sada/create`, sada)
+}
+
+export const getUserAllSadas = () => {
+    return api.get(`${API_URL}/sada/get-all-user`)
+}
+
+export const getAllSadas = () => {
+    return api.get(`${API_URL}/sada/get-all`)
+}
+
+export const updateSada = (id: string, data: any) => {
+    return api.put(`${API_URL}/sada/${id}`, data)
+}
+
+export const deleteSada = (id: string) => {
+    return api.delete(`${API_URL}/sada/${id}`)
+}
+
+export const updateSadaStatus = (id: string, data: any) => {
+    return api.patch(`${API_URL}/sada/update-status/${id}`, data)
 }

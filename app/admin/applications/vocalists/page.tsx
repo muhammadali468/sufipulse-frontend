@@ -7,6 +7,7 @@ import { CheckCircle, XCircle, Clock, Eye, User, AlertCircle, RefreshCw, FileTex
 import { useAuth } from '../../../contexts/AuthContext';
 import * as api from "../../../api/auth";
 import { WriterFormData } from '@/app/types/writer.types';
+import { VocalistProfileType } from '@/app/types/vocalist.types';
 // import { WriterFormData } from '@/app/components/writers/WriterCredentialsForm';
 
 interface WriterApplication {
@@ -36,11 +37,11 @@ interface WriterApplication {
     } | null;
 }
 
-export default function AdminWriterApplications() {
+export default function AdminVocalistApplications() {
     const { user, loading: authLoading } = useAuth();
-    const [applications, setApplications] = useState<WriterFormData[]>([]);
+    const [applications, setApplications] = useState<VocalistProfileType[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedApp, setSelectedApp] = useState<WriterFormData | null>(null);
+    const [selectedApp, setSelectedApp] = useState<VocalistProfileType | null>(null);
     const [adminNotes, setAdminNotes] = useState('');
     const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'under_review' | 'revision_requested'>('pending');
     const [processingAction, setProcessingAction] = useState(false);
@@ -59,9 +60,9 @@ export default function AdminWriterApplications() {
             console.log('[AdminWriterApplications] Current user:', user);
             console.log('[AdminWriterApplications] Auth loading:', authLoading);
 
-            const res = await api.getAllWriter()
+            const res = await api.getAllVocalists()
             console.log(res)
-            setApplications(res.data.writers || []);
+            setApplications(res.data.vocalists || []);
         } catch (error) {
             console.error('[AdminWriterApplications] Error loading applications:', error);
             alert(`Failed to load applications. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -69,24 +70,25 @@ export default function AdminWriterApplications() {
             setLoading(false);
         }
     }
+
     const filteredApplications = applications.filter((app) => {
         const matchesSearch =
-            app.pen_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            app.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            app.performance_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            app.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             app.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesFilter = filter === 'all' || app.profile_status === filter;
+        const matchesFilter = filter === 'all' || app.status === filter;
 
         return matchesSearch && matchesFilter;
     });
 
     const statusCounts = {
         all: applications.length,
-        pending: applications.filter((a) => a.profile_status === 'pending').length,
-        under_review: applications.filter((a) => a.profile_status === 'under_review').length,
-        revision_requested: applications.filter((a) => a.profile_status === 'revision_requested').length,
-        approved: applications.filter((a) => a.profile_status === 'approved').length,
-        rejected: applications.filter((a) => a.profile_status === 'rejected').length,
+        pending: applications.filter((a) => a.status === 'pending').length,
+        under_review: applications.filter((a) => a.status === 'under_review').length,
+        revision_requested: applications.filter((a) => a.status === 'revision_requested').length,
+        approved: applications.filter((a) => a.status === 'approved').length,
+        rejected: applications.filter((a) => a.status === 'rejected').length,
     };
 
     function getStatusBadgeClass(status: string) {
@@ -122,9 +124,9 @@ export default function AdminWriterApplications() {
         // if (!kalam) return;
 
         try {
-            await api.updateWriterStatus(
+            await api.updateVocalistStatus(
                 id,
-                status,
+                status
             );
 
             alert("Status updated");
@@ -202,11 +204,11 @@ export default function AdminWriterApplications() {
                                 <table className="dashboard-table">
                                     <thead>
                                         <tr>
-                                            <th>Pen Name</th>
-                                            <th>Applicant</th>
-                                            <th>Status</th>
-                                            <th>Submitted</th>
-                                            <th>Reviewed</th>
+                                            <th>Performance Name</th>
+                                            <th>Vocalist</th>
+                                            <th>Experience</th>
+                                            <th>Country</th>
+                                            <th>Languages</th>
                                             <th className="text-right">Actions</th>
                                         </tr>
                                     </thead>
@@ -219,69 +221,58 @@ export default function AdminWriterApplications() {
                                             </tr>
                                         ) : (
                                             filteredApplications.map((app) => (
-                                                <tr key={app.id}>
+                                                <tr key={app.email}>
                                                     <td>
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-full bg-[var(--dash-bg-secondary)] flex items-center justify-center">
                                                                 <FileText className="w-5 h-5 text-[var(--dash-accent)]" />
                                                             </div>
+
                                                             <div>
                                                                 <div className="font-medium text-[var(--dash-text-primary)]">
-                                                                    {app.pen_name}
+                                                                    {app.performance_name}
                                                                 </div>
-                                                                {/* <div className="text-xs text-[var(--dash-text-muted)] line-clamp-1">
-                                                                    {app.bio.substring(0, 50)}...
-                                                                </div> */}
+                                                                <div className="text-xs text-[var(--dash-text-muted)]">
+                                                                    {app.city}, {app.country}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </td>
+
                                                     <td>
                                                         <div className="flex items-center gap-2 text-[var(--dash-text-secondary)]">
                                                             <User className="w-4 h-4 text-[var(--dash-text-muted)]" />
                                                             <div>
-                                                                <div>{app.full_name || app.email || 'No name'}</div>
+                                                                <div>{app.full_name}</div>
                                                                 <div className="text-xs text-[var(--dash-text-muted)]">
-                                                                    {app.email || app.email || 'No email'}
+                                                                    {app.email}
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    {/* <td>
-                                                        <span className={`${getStatusBadgeClass(app.profile_status)} flex items-center gap-1 w-fit p-2 rounded-lg`}>
-                                                            {getStatusIcon(app.profile_status)}
-                                                            {app.profile_status.replace(/_/g, ' ')}
-                                                        </span>
-                                                    </td>
+
                                                     <td className="text-[var(--dash-text-secondary)]">
-                                                        {new Date(app.created_at).toLocaleDateString()}
-                                                    </td> */}
-                                                    {/* <td className="text-[var(--dash-text-secondary)]">
-                                                        {app.reviewed_at ? (
-                                                            <div>
-                                                                <div>{new Date(app.reviewed_at).toLocaleDateString()}</div>
-                                                                {app.reviewer && (
-                                                                    <div className="text-xs text-[var(--dash-text-muted)]">
-                                                                        by {app.reviewer.full_name || app.reviewer.email}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-[var(--dash-text-muted)]">Not reviewed</span>
-                                                        )}
-                                                    </td> */}
+                                                        {app.years_experience} years
+                                                    </td>
+
+                                                    <td className="text-[var(--dash-text-secondary)]">
+                                                        {app.country}
+                                                    </td>
+
+                                                    <td className="text-[var(--dash-text-secondary)]">
+                                                        {Array.isArray(app.languages_performed)
+                                                            ? app.languages_performed.join(", ")
+                                                            : app.languages_performed}
+                                                    </td>
+
                                                     <td className="text-right">
                                                         <button
-                                                            onClick={() => {
-                                                                setSelectedApp(app);
-                                                                // setAdminNotes(app.admin_notes || '');
-                                                            }}
+                                                            onClick={() => setSelectedApp(app)}
                                                             className="dashboard-btn-primary text-sm flex items-center gap-2 ml-auto"
-                                                            disabled={processingAction}
                                                         >
                                                             <Eye className="w-4 h-4" />
                                                             Review
                                                         </button>
-
                                                     </td>
                                                 </tr>
                                             ))
@@ -297,7 +288,7 @@ export default function AdminWriterApplications() {
                     )}
                 </div>
 
-                {selectedApp && selectedApp.id && (
+                {selectedApp && (
                     <div className="dashboard-modal-overlay" onClick={() => !processingAction && setSelectedApp(null)}>
                         <div className="dashboard-modal max-w-4xl relative" onClick={(e) => e.stopPropagation()}>
                             <div className="dashboard-modal-header">
@@ -308,7 +299,7 @@ export default function AdminWriterApplications() {
                                             Writer Application Review
                                         </h2>
                                         <p className="text-sm text-[var(--dash-text-secondary)]">
-                                            {selectedApp.pen_name} • {selectedApp.email}
+                                            {selectedApp.performance_name} • {selectedApp.email}
                                         </p>
                                     </div>
                                 </div>
@@ -329,22 +320,50 @@ export default function AdminWriterApplications() {
                             <div className="dashboard-modal-body max-h-[60vh] overflow-y-auto">
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="dashboard-label">Applicant Email</label>
-                                            <p className="text-[var(--dash-text-primary)]">{selectedApp.email}</p>
-                                        </div>
 
                                         <div>
                                             <label className="dashboard-label">Full Name</label>
+                                            <p className="text-[var(--dash-text-primary)]">{selectedApp.full_name}</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="dashboard-label">Performance Name</label>
+                                            <p className="text-[var(--dash-text-primary)]">{selectedApp.performance_name}</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="dashboard-label">Location</label>
                                             <p className="text-[var(--dash-text-primary)]">
-                                                {selectedApp.full_name || 'Not provided'}
+                                                {selectedApp.city}, {selectedApp.country}
                                             </p>
                                         </div>
+
+                                        <div>
+                                            <label className="dashboard-label">Years Experience</label>
+                                            <p className="text-[var(--dash-text-primary)]">
+                                                {selectedApp.years_experience}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <label className="dashboard-label">Vocal Range</label>
+                                            <p className="text-[var(--dash-text-primary)]">
+                                                {selectedApp.vocal_range}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <label className="dashboard-label">Studio Experience</label>
+                                            <p className="text-[var(--dash-text-primary)]">
+                                                {selectedApp.worked_in_studio ? "Yes" : "No"}
+                                            </p>
+                                        </div>
+
                                     </div>
                                     <div>
                                         <label className="dashboard-label">Sample Work</label>
                                         <div className="bg-[var(--dash-bg-secondary)] rounded-lg p-4 max-h-80 overflow-y-auto border border-[var(--dash-border)]">
-                                            <p className="text-[var(--dash-text-secondary)] whitespace-pre-wrap">{selectedApp.sample_kalam}</p>
+                                            <p className="text-[var(--dash-text-secondary)] whitespace-pre-wrap">{selectedApp.sample_link}</p>
                                         </div>
                                     </div>
 
@@ -376,7 +395,7 @@ export default function AdminWriterApplications() {
                                         />
                                     </div> */}
 
-                                    {selectedApp.profile_status === 'approved' && (
+                                    {selectedApp.status === 'approved' && (
                                         <div className="bg-[var(--dash-status-approved)]/10 border border-[var(--dash-status-approved)] rounded-lg p-4">
                                             <div className="flex items-start gap-3">
                                                 <AlertCircle className="w-5 h-5 text-[var(--dash-status-approved)] flex-shrink-0 mt-0.5" />
@@ -397,16 +416,15 @@ export default function AdminWriterApplications() {
                             <div className="dashboard-modal-footer">
                                 <div className="grid grid-cols-4 gap-3 w-full">
                                     <button
-
-                                        disabled={processingAction || selectedApp.profile_status === 'approved'}
                                         onClick={() => handleUpdateStatus(selectedApp.id, 'approved')}
+                                        disabled={processingAction || selectedApp.status === 'approved'}
                                         className="dashboard-btn-primary bg-[var(--dash-status-approved)] hover:opacity-90 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <CheckCircle className="w-4 h-4" />
                                         Approve
                                     </button>
                                     <button
-                                        // onClick={() => updateApplicationStatus(selectedApp.id, 'under_review')}
+                                        onClick={() => handleUpdateStatus(selectedApp.id, 'under_review')}
                                         disabled={processingAction}
                                         className="dashboard-btn-secondary flex items-center justify-center gap-2"
                                     >

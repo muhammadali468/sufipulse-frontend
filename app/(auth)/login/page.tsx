@@ -43,7 +43,7 @@ const Login = () => {
         setLoading(true);
         try {
             const res = await login(form.email, form.password);
-            console.log(res)
+            
         } catch (err: any) {
 
             const message =

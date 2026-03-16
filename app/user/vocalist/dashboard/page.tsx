@@ -1,16 +1,14 @@
 "use client";
 import { useEffect, useState } from 'react';
 import DOMPurify from "dompurify";
-// import { supabase } from '../lib/supabase';
-import { Layout } from '../../components/layout/Layout';
-import { PageContainer } from '../../components/layout/PageContainer';
+import { Layout } from '../../../components/layout/Layout';
+import { PageContainer } from '../../../components/layout/PageContainer';
 import { Bell, FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, Loader } from 'lucide-react';
-import * as api from "../../api/auth"
-// import { WriterFormData } from '@/app/components/writers/WriterCredentialsForm';
+import * as api from "../../../api/auth"
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import RichTextEditor from "../../components/ui/RichTextEditor"
+import RichTextEditor from "../../../components/ui/RichTextEditor"
 // import { BtnBold, BtnClearFormatting, BtnItalic, Editor, EditorProvider, Toolbar } from 'react-simple-wysiwyg';
 import Editor, {
   EditorProvider,
@@ -37,22 +35,16 @@ interface Notification {
   action_url?: string;
   submission_reference?: string;
 }
-export interface KalamUnderDraft {
-  title: string,
-  language: string,
-  writing_style: string,
-  content: string,
-}
 
-export interface Kalam {
+export interface Sada {
   title: string;
   user_id: string;
   id: string;
-  writer_id: string;
+  vocalist_id: string;
   status: string;
   language: string;
-  writing_style: string;
-  content: string;
+  performance_style: string;
+  link: string;
   revision_notes?: string;
   created_at?: any;
   updated_at?: any;
@@ -61,204 +53,102 @@ export interface Kalam {
 export default function UserDashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const { user, profileStatus } = useAuth();
   const [activeTab, setActiveTab] = useState<'submissions' | 'notifications' | 'archives'>('submissions');
   const [status, setStatus] = useState("")
-  const [editingKalam, setEditingKalam] = useState<Kalam | null>(null);
-  const [kalam, setKalam] = useState<Kalam | null>(null);
-  const [kalamUnderDraft, setkalamUnderDraft] = useState<KalamUnderDraft>({
-    title: "",
-    language: "",
-    writing_style: "",
-    content: "",
-  })
-  const [kalams, setKalams] = useState<Kalam[]>([])
   const [contentModal, setContentModal] = useState(false)
-  // const [writerProfile,setWriterProfile] = useState()
   const [error, setError] = useState('');
   const router = useRouter()
-  // console.log("status", profileStatus)
-  //   useEffect(() => {
-  //     loadData();
-  //   }, []);
 
-  //   const loadData = async () => {
-  //     setLoading(true);
-  //     try {
-  //       // Load submissions
-  //       const { data: submissionsData, error: submissionsError } = await supabase
-  //         .from('submission_tracking')
-  //         .select('*')
-  //         .order('created_at', { ascending: false });
-
-  //       if (submissionsError) throw submissionsError;
-  //       setSubmissions(submissionsData || []);
-
-  //       // Load notifications
-  //       const { data: notificationsData, error: notificationsError } = await supabase
-  //         .from('notifications')
-  //         .select('*')
-  //         .order('created_at', { ascending: false })
-  //         .limit(20);
-
-  //       if (notificationsError) throw notificationsError;
-  //       setNotifications(notificationsData || []);
-  //     } catch (error) {
-  //       console.error('Error loading dashboard data:', error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   const markNotificationAsRead = async (notificationId: string) => {
-  //     try {
-  //       const { error } = await supabase
-  //         .from('notifications')
-  //         .update({ read: true, read_at: new Date().toISOString() })
-  //         .eq('id', notificationId);
-
-  //       if (error) throw error;
-
-  //       // Update local state
-  //       setNotifications(notifications.map(n =>
-  //         n.id === notificationId ? { ...n, read: true } : n
-  //       ));
-  //     } catch (error) {
-  //       console.error('Error marking notification as read:', error);
-  //     }
-  //   };
-
-  const getStatusColor = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'approved' || statusLower === 'published') return 'text-green-400';
-    if (statusLower === 'rejected' || statusLower === 'declined') return 'text-red-400';
-    if (statusLower === 'under_review') return 'text-blue-400';
-    if (statusLower === 'revision_requested') return 'text-yellow-400';
-    return 'text-neutral-400';
-  };
-
-  const getStatusIcon = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'approved' || statusLower === 'published') return <CheckCircle className="w-5 h-5" />;
-    if (statusLower === 'rejected' || statusLower === 'declined') return <XCircle className="w-5 h-5" />;
-    if (statusLower === 'under_review') return <Eye className="w-5 h-5" />;
-    if (statusLower === 'revision_requested') return <AlertCircle className="w-5 h-5" />;
-    return <Clock className="w-5 h-5" />;
-  };
-
-  const formatSubmissionType = (type: string) => {
-    return type
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-
-  const [writer, setWriter] = useState({
-    languages: [],
-    writing_styles: [],
+  const [vocalist, setVocalist] = useState({
+    languages_performed: [],
+    performance_styles: [],
   })
-  const loadWriterKalams = async () => {
-    try {
-      const res = await api.getUserAllKalams();
-      setKalams(res.data)
-      console.log("Kalams fetched!")
-    } catch (error) {
-      console.log(error)
+  const [sada, setSada] = useState<Sada | null>(null)
+  const [sadas, setSadas] = useState<Sada[]>([])
+  const [editingSada, setEditingSada] = useState<Sada | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [sadaUnderDraft, setSadaUnderDraft] = useState({
+    title: "",
+    link: "",
+    performance_style: "",
+    language: "",
+  })
+   const loadVocalistSadas = async () => {
+      try {
+        const res = await api.getUserAllSadas();
+        setSadas(res.data)
+        console.log("Sadas fetched!", sadas)
+      } catch (error) {
+        console.log(error)
+      }
     }
-  }
-  const loadWriterProfile = async () => {
+  const loadVocalistProfile = async () => {
     try {
-      const res = await api.readWriterProfile();
-      setStatus(res.data.profile_status)
-      setWriter({
-        languages: res.data.primary_languages,
-        writing_styles: res.data.writing_styles
+      setLoading(true)
+      const res = await api.readVocalistProfile();
+      console.log(res)
+      setStatus(res.data.status)
+      setVocalist({
+        languages_performed: res.data.languages_performed,
+        performance_styles: res.data.performance_styles
       })
     } catch (error) {
       console.log(error)
+    } finally{
+      setLoading(false)
     }
   }
   useEffect(() => {
-
-    loadWriterProfile()
-    loadWriterKalams()
+    loadVocalistProfile()
+    loadVocalistSadas()
   }, [])
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this kalam?")) return;
+    if (!confirm("Delete this Sada?")) return;
 
     try {
-      await api.deleteKalam(id);
-      alert("Kalam deleted");
-      loadWriterKalams();
+      await api.deleteSada(id);
+      alert("Sada deleted");
     } catch (err: any) {
       alert(err.response?.data?.error || err.message);
     }
   };
 
-  const handleEdit = (kalam: Kalam) => {
-    setEditingKalam(kalam);
-    setkalamUnderDraft({
-      title: kalam.title,
-      language: kalam.language,
-      writing_style: kalam.writing_style,
-      content: kalam.content,
+  const handleEdit = (sada: Sada) => {
+    setEditingSada(sada);
+    setSadaUnderDraft({
+      title: sada.title,
+      link: sada.link,
+      performance_style: sada.performance_style,
+      language: sada.language,
     });
 
     setActiveTab("submissions");
   };
 
-  const handleShowContent = (kalam: any) => {
-    setKalam(kalam)
+  const handleShowContent = (sada: any) => {
+    setSada(sada)
     setContentModal(true)
     // console.log(showContent)
   }
-  // const handleSubmit = async (e: any) => {
-  //   console.log("kalam", kalams)
-  //   e.preventDefault()
-  //   setLoading(true)
-  //   try {
-  //     const res = await api.createKalam(kalamUnderDraft);
-  //     loadWriterKalams()
-  //     alert("Kalam submitted!")
-  //     // router.push("/")
-  //     setActiveTab("archives")
-  //   } catch (err: any) {
-  //     alert(err.response?.data?.error || err.message);
-  //   }
-  //   finally {
-  //     setLoading(false)
-  //   }
-  // };
 
-  const handleUpdateStatus = async (kalam: Kalam, status: string) => {
-    if (!kalam) return;
+  const handleUpdateStatus = async (sada: Sada, status: string) => {
+    if (!sada) return;
 
     try {
-      await api.updateKalamStatus(
-        kalam.id,
+      await api.updateSadaStatus(
+        sada.id,
         status,
-        null
       );
 
       alert("Status updated");
 
-      setKalam(null);
+      setSada(null);
       setContentModal(false);
 
-      loadWriterKalams(); // refresh table
+      loadVocalistProfile(); // refresh table
     } catch (err: any) {
       alert(err.response?.data?.error || err.message);
     }
@@ -267,19 +157,18 @@ export default function UserDashboard() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-
     try {
 
-      if (editingKalam) {
-        await api.updateKalam(editingKalam.id, kalamUnderDraft);
-        alert("Kalam updated!");
-        setEditingKalam(null);
+      if (editingSada) {
+        await api.updateSada(editingSada.id, sadaUnderDraft);
+        alert("Sada updated!");
+        setEditingSada(null);
       } else {
-        await api.createKalam(kalamUnderDraft);
-        alert("Kalam submitted!");
+        await api.createSada(sadaUnderDraft);
+        alert("Sada submitted!");
       }
 
-      loadWriterKalams();
+      loadVocalistProfile();
       setActiveTab("archives");
 
     } catch (err: any) {
@@ -290,24 +179,17 @@ export default function UserDashboard() {
   };
   const handleChange = (e: any) => {
     const { name, value } = e.target;
-    setkalamUnderDraft(prev => ({
+    setSadaUnderDraft(prev => ({
       ...prev,
       [name]: value
     }))
 
   }
-  const unreadCount = notifications.filter(n => !n.read).length;
-  //   const handleCheckboxChange = (value: string) => {
-  //   setKalam(prev => ({
-  //     ...prev,
-  //     writing_styles: prev.writing_styles.includes(value)
-  //       ? prev.writing_styles.filter(s => s !== value)
-  //       : [...prev.writing_styles, value],
-  //   }));
-  // };
   return (
     <Layout>
       <PageContainer>
+        {loading ? 
+        <Loader className="animate-spin" /> :
         <div className="py-16">
           <div className="max-w-6xl mx-auto">
             <div className="mb-8">
@@ -374,14 +256,14 @@ export default function UserDashboard() {
                 {/* Submissions Tab */}
                 {activeTab === 'submissions' && (
                   <div className="space-y-4">
-                    {status !== "approved" ? (
+
+                    {status !== "approved" && false ? (
                       <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
                         <FileText className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
                         <h3 className="text-xl font-semibold text-white mb-2">Your Writer Profile hasn't approved yet</h3>
                         <p className="text-neutral-400">
                           You can submit your kalam once your profile is approved.
                         </p>
-
                       </div>
                     ) : (
                       <div>
@@ -389,16 +271,16 @@ export default function UserDashboard() {
                         <div className='mb-4'>
                           <div className="flex gap-4 mb-4">
                             <div>
-                              <label className="block text-neutral-400 text-xs mb-2">Kalam Writing Style</label>
+                              <label className="block text-neutral-400 text-xs mb-2">Vocalist Singing Style</label>
                               <div className="space-y-2">
-                                {writer.writing_styles.map(style => (
+                                {vocalist.performance_styles.map(style => (
                                   <label key={style} className="flex items-center gap-2 text-neutral-300 text-sm">
                                     <input
                                       type="radio"
                                       value={style}
-                                      checked={kalamUnderDraft.writing_style === style}
+                                      checked={sadaUnderDraft.performance_style === style}
                                       onChange={(e) =>
-                                        setkalamUnderDraft({ ...kalamUnderDraft, writing_style: e.target.value })
+                                        setSadaUnderDraft({ ...sadaUnderDraft, performance_style: e.target.value })
                                       }
                                       className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                                     />
@@ -407,46 +289,60 @@ export default function UserDashboard() {
                                 ))}
                               </div>
                             </div>
-                            <div>
-                              <label className="block text-neutral-400 text-xs mb-2">Kalam Language</label>
-                              <div className="space-y-2">
-                                {writer.languages.map(language => (
-                                  <label key={language} className="flex items-center gap-2 text-neutral-300 text-sm">
-                                    <input
-                                      type="radio"
-                                      value={language}
-                                      checked={kalamUnderDraft.language === language}
-                                      onChange={(e) =>
-                                        setkalamUnderDraft({ ...kalamUnderDraft, language: e.target.value })
-                                      }
-                                      className="lowercase! w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
-                                    />
-                                    {language}
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
+                            {vocalist.languages_performed.length > 0 ?
+                              <div>
+                                <label className="block text-neutral-400 text-xs mb-2">Kalam Language</label>
+                                <div className="space-y-2">
+                                  {vocalist.languages_performed.map(language => (
+                                    <label key={language} className="flex items-center gap-2 text-neutral-300 text-sm">
+                                      <input
+                                        type="radio"
+                                        value={language}
+                                        checked={sadaUnderDraft.language === language}
+                                        onChange={(e) =>
+                                          setSadaUnderDraft({ ...sadaUnderDraft, language: e.target.value })
+                                        }
+                                        className="lowercase! w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
+                                      />
+                                      {language}
+                                    </label>
+                                  ))}
+                                </div>
+                              </div> : ""}
                           </div>
                           <label className="block text-sm font-semibold text-[var(--color-text-primary)]! mb-2">
-                            Kalam Title <span className="text-red-500">*</span>
+                            Sada Title <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
                             required
                             name='title'
-                            value={kalamUnderDraft.title}
+                            value={sadaUnderDraft.title}
                             onChange={handleChange}
                             maxLength={100}
                             className="form-input w-full px-4 py-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)]"
-                            placeholder="The name you wish to your kalam to be called"
+                            placeholder="The name you wish to your sada to be called"
                           />
                         </div>
-                        <EditorProvider>
+                        {/* <EditorProvider>
                           <Editor name='content' className='border border-white!' value={kalamUnderDraft.content} onChange={handleChange}
                             style={{ minHeight: "300px", maxHeight: "600px", overflowY: "auto" }}
                           >
                           </Editor>
-                        </EditorProvider>
+                        </EditorProvider> */}
+                        <label className="block text-sm font-semibold text-[var(--color-text-primary)]! mb-2">
+                            Sada Link <span className="text-red-500">*</span>
+                          </label>
+                        <input
+                          type="url"
+                          required
+                          name='link'
+                          value={sadaUnderDraft.link}
+                          onChange={handleChange}
+                          maxLength={100}
+                          className="form-input w-full px-4 py-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)]"
+                          placeholder="The name you wish to your sada to be called"
+                        />
                         <div className="flex w-full justify-end">
                           <button className='bg-yellow-400 text-black px-4 py-2 rounded-lg mt-4' onClick={handleSubmit}>
                             {loading ? <Loader className='animate' /> : "Save & Submit"}
@@ -458,80 +354,14 @@ export default function UserDashboard() {
                   </div>
                 )}
 
-                {/* Notifications Tab */}
-                {/* {activeTab === 'notifications' && (
-                  <div className="space-y-4">
-                    {notifications.length === 0 ? (
-                      <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
-                        <Bell className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">No notifications</h3>
-                        <p className="text-neutral-400">
-                          You will receive notifications here when there are updates to your submissions.
-                        </p>
-                      </div>
-                    ) : (
-                      notifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={`bg-neutral-900/50 border rounded-lg p-6 transition-colors ${notification.read
-                            ? 'border-neutral-800'
-                            : 'border-blue-500/30 bg-blue-500/5'
-                            }`}
-                        >
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h3 className="text-lg font-semibold text-white">
-                                  {notification.title}
-                                </h3>
-                                {!notification.read && (
-                                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                )}
-                              </div>
-                              {notification.submission_reference && (
-                                <p className="text-xs text-neutral-500 mb-2">
-                                  {notification.submission_reference}
-                                </p>
-                              )}
-                            </div>
-                            <span className="text-sm text-neutral-400 whitespace-nowrap ml-4">
-                              {formatDate(notification.created_at)}
-                            </span>
-                          </div>
-
-                          <p className="text-neutral-300 mb-4">{notification.message}</p>
-
-                          <div className="flex gap-3">
-                            {notification.action_url && (
-                              <a
-                                href={notification.action_url}
-                                className="px-4 py-2 bg-white text-black font-semibold rounded hover:bg-neutral-200 transition-colors text-sm"
-                              >
-                                View Details
-                              </a>
-                            )}
-                            {!notification.read && (
-                              <button
-                                // onClick={() => markNotificationAsRead(notification.id)}
-                                className="px-4 py-2 border border-neutral-700 text-neutral-300 font-semibold rounded hover:bg-neutral-800 transition-colors text-sm"
-                              >
-                                Mark as Read
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )} */}
                 {/* Archive Tab */}
 
-                {contentModal && kalam ?
+                {contentModal && sada ?
                   <div className="dashboard-modal-overlay">
                     <div className="dashboard-modal">
                       <div className="dashboard-modal-header">
                         <div className="flex items-center justify-between">
-                          <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">Kalam Review</h2>
+                          <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">Sada Review</h2>
                           <button
                             onClick={() => {
                               // setSelectedKalam(null);
@@ -548,14 +378,14 @@ export default function UserDashboard() {
                       <div className="dashboard-modal-body overflow-y-scroll scrollbar-hide">
                         <div className="space-y-4">
 
-                          {kalam.revision_notes ?
+                          {sada.revision_notes ?
                             <div>
                               <label className="dashboard-label">
                                 Admin Notes
                               </label>
                               <div className="bg-red-600 rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
                                 <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                  {kalam.revision_notes}
+                                  {sada.revision_notes}
                                 </p>
                               </div>
                             </div>
@@ -566,17 +396,17 @@ export default function UserDashboard() {
                             </label>
                             <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
                               <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                {kalam.title}
+                                {sada.title}
                               </p>
                             </div>
                           </div>
                           <div>
                             <label className="dashboard-label">
-                              Content
+                              Link
                             </label>
                             <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
                               <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                {kalam.content}
+                                {sada.link}
                               </p>
                             </div>
                           </div>
@@ -586,17 +416,17 @@ export default function UserDashboard() {
 
                       <div className="dashboard-modal-footer">
                         <button
-                          disabled={kalam.status !== "draft"}
-                          onClick={() => handleUpdateStatus(kalam, 'under review')}
+                          disabled={sada.status !== "draft"}
+                          onClick={() => handleUpdateStatus(sada, 'under review')}
                           className="flex-1 disabled:opacity-50 bg-[var(--dash-status-approved)] hover:opacity-90 text-white rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
                         >
-                          {kalam.status === "draft" ? <CheckCircle className="w-5 h-5" /> : ""}
-                          {kalam.status === "draft" ? "Submit Kalam" : kalam.status === "under review" ? "Under Review" : "Submitted"}
+                          {sada.status === "draft" ? <CheckCircle className="w-5 h-5" /> : ""}
+                          {sada.status === "draft" ? "Submit Kalam" : sada.status === "under review" ? "Under Review" : "Submitted"}
                         </button>
                         <button
-                          disabled={kalam.status !== "draft"}
+                          disabled={sada.status !== "draft"}
                           onClick={() => {
-                            handleDelete(kalam.id)
+                            handleDelete(sada.id)
                           }}
                           className="flex-1 disabled:opacity-50 dashboard-btn-danger flex items-center justify-center gap-2"
                         >
@@ -608,7 +438,7 @@ export default function UserDashboard() {
                   </div>
                   : ""}
 
-                {activeTab === 'archives' && (
+                {activeTab === 'archives' && vocalist.languages_performed.length > 0 && (
                   <div className="overflow-x-auto">
                     <table className="min-w-full border border-gray-200">
                       <thead className="">
@@ -625,31 +455,30 @@ export default function UserDashboard() {
                       </thead>
 
                       <tbody>
-                        {kalams.map((kalam: any) => (
-                          <>
-                            <tr key={kalam.id} className="text-center">
-                              <td className="p-3 border">{kalam.id}</td>
-                              <td className="p-3 border">{kalam.title}</td>
-                              <td className="p-3 border">{kalam.language}</td>
-                              <td className="p-3 border">{kalam.writing_style}</td>
-                              <td className="p-3 border capitalize">{kalam.status}</td>
+                        {sadas.map((sada: Sada) => (
+                            <tr key={sada.id} className="text-center">
+                              <td className="p-3 border">{sada.id}</td>
+                              <td className="p-3 border">{sada.title}</td>
+                              <td className="p-3 border">{sada.language}</td>
+                              <td className="p-3 border">{sada.performance_style}</td>
+                              <td className="p-3 border capitalize">{sada.status}</td>
                               <td className="p-3 border flex gap-3 justify-center">
                                 <button
-                                  onClick={() => handleShowContent(kalam)}
+                                  onClick={() => handleShowContent(sada)}
                                   className="bg-blue-500 text-black rounded-lg px-4 py-2"
                                 >
                                   View
                                 </button>
 
                                 <button
-                                  onClick={() => handleEdit(kalam)}
+                                  onClick={() => handleEdit(sada)}
                                   className="bg-yellow-500 text-black rounded-lg px-4 py-2"
                                 >
                                   Edit
                                 </button>
                               </td>
                             </tr>
-                          </>
+                        
                         ))}
                       </tbody>
                     </table>
@@ -659,7 +488,7 @@ export default function UserDashboard() {
             )}
 
           </div>
-        </div>
+        </div>}
       </PageContainer>
     </Layout>
   );

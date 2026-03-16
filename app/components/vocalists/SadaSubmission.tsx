@@ -15,29 +15,8 @@ import RichTextEditor from "../../components/ui/RichTextEditor"
 import Editor, {
   EditorProvider,
 } from "react-simple-wysiwyg";
-interface Submission {
-  id: string;
-  submission_reference: string;
-  submission_type: string;
-  current_status: string;
-  submitter_name: string;
-  submission_data: any;
-  created_at: string;
-  status_updated_at: string;
-  admin_notes?: string;
-}
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  notification_type: string;
-  read: boolean;
-  created_at: string;
-  action_url?: string;
-  submission_reference?: string;
-}
-export interface KalamUnderDraft {
+export interface SadaUnderDraft {
   title: string,
   language: string,
   writing_style: string,

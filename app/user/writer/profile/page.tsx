@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from 'react';
 import DOMPurify from "dompurify";
-import { Layout } from '../../components/layout/Layout';
-import { PageContainer } from '../../components/layout/PageContainer';
+import { Layout } from '../../../components/layout/Layout';
+import { PageContainer } from '../../../components/layout/PageContainer';
 import { Bell, FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, Loader } from 'lucide-react';
-import * as api from "../../api/auth"
+import * as api from "../../../api/auth"
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -177,10 +177,7 @@ export default function UserProfile() {
     e.preventDefault()
     const payload = {
       ...formData,
-      primary_languages: formData.primary_languages
-        .trim()
-        .split(/[,\s]+/)
-        .filter(Boolean) // split by space
+      primary_languages: formData.primary_languages ? formData.primary_languages.trim().split(/[,\s]+/).filter(Boolean) : [] // split by space
     };
     try {
       setLoading(true)

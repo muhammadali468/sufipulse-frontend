@@ -54,7 +54,7 @@ export function VocalistCredentialsForm() {
       setLoading(true);
       const res = await api.createVocalistProfile(payload);
       alert("Vocalist profile Submitted");
-      router.push('/user/profile')
+      router.push('/user/vocalist/profile')
     } catch (error) {
       console.log(error);
     } finally {
@@ -238,6 +238,7 @@ export function VocalistCredentialsForm() {
                 <input
                   type="url"
                   value={formData.sample_link}
+                  required
                   onChange={e => setFormData({ ...formData, sample_link: e.target.value })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
