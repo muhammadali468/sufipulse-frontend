@@ -175,9 +175,16 @@ export default function UserProfile() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
+    // const payload = {
+    //   ...formData,
+    //   primary_languages: formData.primary_languages ? formData.primary_languages.trim().split(/[,\s]+/).filter(Boolean) : [] // split by space
+    // };
     const payload = {
-      ...formData,
-      primary_languages: formData.primary_languages ? formData.primary_languages.trim().split(/[,\s]+/).filter(Boolean) : [] // split by space
+      ...vocalist,
+      primary_languages:
+        formData.primary_languages && formData.primary_languages.length > 0
+          ? String(formData.primary_languages).trim().split(/[,\s]+/).filter(Boolean)
+          : []
     };
     try {
       setLoading(true)

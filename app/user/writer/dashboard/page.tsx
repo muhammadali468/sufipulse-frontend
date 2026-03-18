@@ -4,7 +4,7 @@ import DOMPurify from "dompurify";
 // import { supabase } from '../lib/supabase';
 import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
-import { Bell, FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, Loader } from 'lucide-react';
+import { Bell, FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, Loader, Settings, Search } from 'lucide-react';
 import * as api from "../../../api/auth"
 // import { WriterFormData } from '@/app/components/writers/WriterCredentialsForm';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -77,7 +77,14 @@ export default function UserDashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const { user, profileStatus } = useAuth();
-  const [activeTab, setActiveTab] = useState<'submissions' | 'notifications' | 'archives'>('submissions');
+  const [activeTab, setActiveTab] = useState<'settings' | 'submissions' | 'my-content' | 'published'>('submissions');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [myContentSearch, setMyContentSearch] = useState('');
+  const [myContentDate, setMyContentDate] = useState('');
+  const [publishedSearch, setPublishedSearch] = useState('');
+  const [publishedDate, setPublishedDate] = useState('');
   const [status, setStatus] = useState("")
   const [editingKalam, setEditingKalam] = useState<Kalam | null>(null);
   const [kalam, setKalam] = useState<Kalam | null>(null);
@@ -142,6 +149,25 @@ export default function UserDashboard() {
   //       console.error('Error marking notification as read:', error);
   //     }
   //   };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword) {
+      alert("Please fill all fields");
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await api.updatePassword(currentPassword, newPassword);
+      alert("Password updated successfully!");
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch (err: any) {
+      alert(err.response?.data?.error || err.message || "Failed to update password");
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     const statusLower = status.toLowerCase();
@@ -320,7 +346,7 @@ export default function UserDashboard() {
       }
 
       loadWriterKalams();
-      setActiveTab("archives");
+      setActiveTab("my-content");
 
     } catch (err: any) {
       alert(err.response?.data?.error || err.message);
@@ -328,29 +354,7 @@ export default function UserDashboard() {
       setLoading(false);
     }
   };
-  const handleSubmitSada = async (e: any) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
 
-      if (editingSada) {
-        await api.updateKalam(editingSada.id, sadaUnderDraft);
-        alert("Sada updated!");
-        setEditingSada(null);
-      } else {
-        await api.createSada(sadaUnderDraft);
-        alert("Sada submitted!");
-      }
-
-      loadVocalistProfile();
-      setActiveTab("archives");
-
-    } catch (err: any) {
-      alert(err.response?.data?.error || err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setkalamUnderDraft(prev => ({
@@ -372,379 +376,516 @@ export default function UserDashboard() {
     <Layout>
       <PageContainer>
         <div className="py-16">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <div className="mb-8">
-              <h1 className="text-4xl font-bold text-white mb-2">My Dashboard</h1>
-              <p className="text-neutral-400">
+              <h1 className="text-3xl font-bold text-white mb-2">My Dashboard</h1>
+              <p className="text-neutral-400 text-sm">
                 Track your submissions and view notifications
               </p>
             </div>
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Sidebar Navigation */}
+              <div className="w-full md:w-64 flex-shrink-0">
 
-            {/* Tab Navigation */}
-            <div className="flex gap-4 mb-8 border-b border-neutral-800">
-              <button
-                onClick={() => setActiveTab('submissions')}
-                className={`pb-4 px-4 font-semibold transition-colors relative ${activeTab === 'submissions'
-                  ? 'text-white'
-                  : 'text-neutral-400 hover:text-neutral-300'
-                  }`}
-              >
-                <FileText className="w-5 h-5 inline-block mr-2" />
-                My Submissions
-                {activeTab === 'submissions' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
-                )}
-              </button>
-              {/* <button
-                onClick={() => setActiveTab('notifications')}
-                className={`pb-4 px-4 font-semibold transition-colors relative ${activeTab === 'notifications'
-                  ? 'text-white'
-                  : 'text-neutral-400 hover:text-neutral-300'
-                  }`}
-              >
-                <Bell className="w-5 h-5 inline-block mr-2" />
-                Notifications
-                {unreadCount > 0 && (
-                  <span className="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded-full">
-                    {unreadCount}
-                  </span>
-                )}
-                {activeTab === 'notifications' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
-                )}
-              </button> */}
-              <button
-                onClick={() => setActiveTab('archives')}
-                className={`pb-4 px-4 font-semibold transition-colors relative ${activeTab === 'archives'
-                  ? 'text-white'
-                  : 'text-neutral-400 hover:text-neutral-300'
-                  }`}
-              >
-                {/* <Bell className="w-5 h-5 inline-block mr-2" /> */}
-                <FileText className="w-5 h-5 inline-block mr-2" />
-                Archives
-
-              </button>
-            </div>
-
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                <p className="mt-4 text-neutral-400">Loading your dashboard...</p>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`flex items-center w-full px-4 py-3 rounded-xl font-semibold transition-all ${activeTab === 'settings'
+                      ? 'bg-neutral-800 text-white shadow-sm'
+                      : 'text-neutral-400 hover:bg-neutral-800/50 hover:text-white'
+                      }`}
+                  >
+                    <Settings className="w-5 h-5 mr-3" />
+                    General Settings
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('submissions')}
+                    className={`flex items-center w-full px-4 py-3 rounded-xl font-semibold transition-all ${activeTab === 'submissions'
+                      ? 'bg-neutral-800 text-white shadow-sm'
+                      : 'text-neutral-400 hover:bg-neutral-800/50 hover:text-white'
+                      }`}
+                  >
+                    <FileText className="w-5 h-5 mr-3" />
+                    Submissions
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('my-content')}
+                    className={`flex items-center w-full px-4 py-3 rounded-xl font-semibold transition-all ${activeTab === 'my-content'
+                      ? 'bg-neutral-800 text-white shadow-sm'
+                      : 'text-neutral-400 hover:bg-neutral-800/50 hover:text-white'
+                      }`}
+                  >
+                    <FileText className="w-5 h-5 mr-3" />
+                    My Content
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('published')}
+                    className={`flex items-center w-full px-4 py-3 rounded-xl font-semibold transition-all ${activeTab === 'published'
+                      ? 'bg-neutral-800 text-white shadow-sm'
+                      : 'text-neutral-400 hover:bg-neutral-800/50 hover:text-white'
+                      }`}
+                  >
+                    <CheckCircle className="w-5 h-5 mr-3" />
+                    Published
+                  </button>
+                </div>
               </div>
-            ) : (
-              <>
-                {/* Submissions Tab */}
-                {activeTab === 'submissions' && (
-                  <div className="space-y-4">
-                    {status !== "approved" && writer.languages.length === 0 ? (
-                      <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
-                        <FileText className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">Your Writer Profile hasn't approved yet</h3>
-                        <p className="text-neutral-400">
-                          You can submit your kalam once your profile is approved.
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        {/* <RichTextEditor /> */}
-                        <div className='mb-4'>
-                          <div className="flex gap-4 mb-4">
-                            <div>
-                              <label className="block text-neutral-400 text-xs mb-2">Kalam Writing Style</label>
-                              <div className="space-y-2">
-                                {writer.writing_styles.map(style => (
-                                  <label key={style} className="flex items-center gap-2 text-neutral-300 text-sm">
-                                    <input
-                                      type="radio"
-                                      value={style}
-                                      checked={kalamUnderDraft.writing_style === style}
-                                      onChange={(e) =>
-                                        setkalamUnderDraft({ ...kalamUnderDraft, writing_style: e.target.value })
-                                      }
-                                      className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
-                                    />
-                                    {style}
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            <div>
-                              <label className="block text-neutral-400 text-xs mb-2">Kalam Language</label>
-                              <div className="space-y-2">
-                                {writer.languages.map(language => (
-                                  <label key={language} className="flex items-center gap-2 text-neutral-300 text-sm">
-                                    <input
-                                      type="radio"
-                                      value={language}
-                                      checked={kalamUnderDraft.language === language}
-                                      onChange={(e) =>
-                                        setkalamUnderDraft({ ...kalamUnderDraft, language: e.target.value })
-                                      }
-                                      className="lowercase! w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
-                                    />
-                                    {language}
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
+
+              {/* Main Content Area */}
+              <div className="flex-1 min-w-0">
+                {loading ? (
+                  <div className="text-center py-12 bg-neutral-900/30 rounded-2xl border border-neutral-800/50 h-full flex flex-col items-center justify-center min-h-[400px]">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                    <p className="mt-4 text-neutral-400">Loading your dashboard...</p>
+                  </div>
+                ) : (
+                  <div className="bg-neutral-900/40 rounded-3xl border border-neutral-800/50 p-6 md:p-8 min-h-[500px]">
+                    {/* Settings Tab */}
+                    {activeTab === 'settings' && (
+                      <div className="max-w-md bg-neutral-900/50 border border-neutral-800 rounded-lg p-6">
+                        <h3 className="text-xl font-semibold text-white mb-6">Update Password</h3>
+                        <form onSubmit={handleUpdatePassword} className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-neutral-300 mb-2">Current Password</label>
+                            <input
+                              type="password"
+                              required
+                              value={currentPassword}
+                              onChange={(e) => setCurrentPassword(e.target.value)}
+                              className="w-full px-4 py-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white"
+                              placeholder="••••••••"
+                            />
                           </div>
-                          <label className="block text-sm font-semibold text-[var(--color-text-primary)]! mb-2">
-                            Kalam Title <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            name='title'
-                            value={kalamUnderDraft.title}
-                            onChange={handleChange}
-                            maxLength={100}
-                            className="form-input w-full px-4 py-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)]"
-                            placeholder="The name you wish to your kalam to be called"
-                          />
-                        </div>
-                        <EditorProvider>
-                          <Editor name='content' className='border border-white!' value={kalamUnderDraft.content} onChange={handleChange}
-                            style={{ minHeight: "300px", maxHeight: "600px", overflowY: "auto" }}
-                          >
-                          </Editor>
-                        </EditorProvider>
-                        <div className="flex w-full justify-end">
-                          <button className='bg-yellow-400 text-black px-4 py-2 rounded-lg mt-4' onClick={handleSubmit}>
-                            {loading ? <Loader className='animate' /> : "Save & Submit"}
+                          <div>
+                            <label className="block text-sm font-semibold text-neutral-300 mb-2">New Password</label>
+                            <input
+                              type="password"
+                              required
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              className="w-full px-4 py-3 rounded-lg bg-neutral-800 border border-neutral-700 text-white"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                          <button type="submit" disabled={passwordLoading} className="w-full bg-yellow-400 text-black font-semibold px-4 py-3 rounded-lg mt-4 disabled:opacity-50">
+                            {passwordLoading ? <Loader className='animate-spin mx-auto' /> : "Update Password"}
                           </button>
-                        </div>
-                        {/* <button onClick={handleSubmitKalam}>Save</button> */}
+                        </form>
                       </div>
                     )}
 
-                    {status !== "approved" && false ? (
-                      <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
-                        <FileText className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">Your Writer Profile hasn't approved yet</h3>
-                        <p className="text-neutral-400">
-                          You can submit your kalam once your profile is approved.
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        {/* <RichTextEditor /> */}
-                        <div className='mb-4'>
-                          <div className="flex gap-4 mb-4">
-                            <div>
-                              <label className="block text-neutral-400 text-xs mb-2">Vocalist Singing Style</label>
-                              <div className="space-y-2">
-                                {vocalist.performance_styles.map(style => (
-                                  <label key={style} className="flex items-center gap-2 text-neutral-300 text-sm">
-                                    <input
-                                      type="radio"
-                                      value={style}
-                                      checked={sadaUnderDraft.performance_style === style}
-                                      onChange={(e) =>
-                                        setSadaUnderDraft({ ...sadaUnderDraft, performance_style: e.target.value })
-                                      }
-                                      className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
-                                    />
-                                    {style}
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            <div>
-                              <label className="block text-neutral-400 text-xs mb-2">Kalam Language</label>
-                              <div className="space-y-2">
-                                {vocalist.languages_performed.map(language => (
-                                  <label key={language} className="flex items-center gap-2 text-neutral-300 text-sm">
-                                    <input
-                                      type="radio"
-                                      value={language}
-                                      checked={kalamUnderDraft.language === language}
-                                      onChange={(e) =>
-                                        setkalamUnderDraft({ ...kalamUnderDraft, language: e.target.value })
-                                      }
-                                      className="lowercase! w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
-                                    />
-                                    {language}
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
+                    {/* Submissions Tab */}
+                    {activeTab === 'submissions' && (
+                      <div className="space-y-4">
+                        {status !== "approved" && writer.languages.length === 0 ? (
+                          <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
+                            <FileText className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-white mb-2">Your Writer Profile hasn't approved yet</h3>
+                            <p className="text-neutral-400">
+                              You can submit your kalam once your profile is approved.
+                            </p>
                           </div>
-                          <label className="block text-sm font-semibold text-[var(--color-text-primary)]! mb-2">
-                            Sada Title <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            name='title'
-                            value={sadaUnderDraft.title}
-                            onChange={handleChange}
-                            maxLength={100}
-                            className="form-input w-full px-4 py-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)]"
-                            placeholder="The name you wish to your sada to be called"
-                          />
-                        </div>
-                        {/* <EditorProvider>
+                        ) : (
+                          <div>
+                            {/* <RichTextEditor /> */}
+                            <div className='mb-4'>
+                              <div className="flex gap-4 mb-4">
+                                <div>
+                                  <label className="block text-neutral-400 text-xs mb-2">Kalam Writing Style</label>
+                                  <div className="space-y-2">
+                                    {writer.writing_styles.map(style => (
+                                      <label key={style} className="flex items-center gap-2 text-neutral-300 text-sm">
+                                        <input
+                                          type="radio"
+                                          value={style}
+                                          checked={kalamUnderDraft.writing_style === style}
+                                          onChange={(e) =>
+                                            setkalamUnderDraft({ ...kalamUnderDraft, writing_style: e.target.value })
+                                          }
+                                          className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
+                                        />
+                                        {style}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-neutral-400 text-xs mb-2">Kalam Language</label>
+                                  <div className="space-y-2">
+                                    {writer.languages.map(language => (
+                                      <label key={language} className="flex items-center gap-2 text-neutral-300 text-sm">
+                                        <input
+                                          type="radio"
+                                          value={language}
+                                          checked={kalamUnderDraft.language === language}
+                                          onChange={(e) =>
+                                            setkalamUnderDraft({ ...kalamUnderDraft, language: e.target.value })
+                                          }
+                                          className="lowercase! w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
+                                        />
+                                        {language}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                              <label className="block text-sm font-semibold text-[var(--color-text-primary)]! mb-2">
+                                Kalam Title <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                name='title'
+                                value={kalamUnderDraft.title}
+                                onChange={handleChange}
+                                maxLength={100}
+                                className="form-input w-full px-4 py-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)]"
+                                placeholder="The name you wish to your kalam to be called"
+                              />
+                            </div>
+                            <EditorProvider>
+                              <Editor name='content' className='border border-white!' value={kalamUnderDraft.content} onChange={handleChange}
+                                style={{ minHeight: "300px", maxHeight: "600px", overflowY: "auto" }}
+                              >
+                              </Editor>
+                            </EditorProvider>
+                            <div className="flex w-full justify-end">
+                              <button className='bg-yellow-400 text-black px-4 py-2 rounded-lg mt-4' onClick={handleSubmit}>
+                                {loading ? <Loader className='animate' /> : "Save & Submit"}
+                              </button>
+                            </div>
+                            {/* <button onClick={handleSubmitKalam}>Save</button> */}
+                          </div>
+                        )}
+
+                        {status !== "approved" && false ? (
+                          <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
+                            <FileText className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-white mb-2">Your Writer Profile hasn't approved yet</h3>
+                            <p className="text-neutral-400">
+                              You can submit your kalam once your profile is approved.
+                            </p>
+                          </div>
+                        ) : (
+                          <div>
+                            {/* <RichTextEditor /> */}
+                            <div className='mb-4'>
+                              <div className="flex gap-4 mb-4">
+                                <div>
+                                  <label className="block text-neutral-400 text-xs mb-2">Vocalist Singing Style</label>
+                                  <div className="space-y-2">
+                                    {vocalist.performance_styles.map(style => (
+                                      <label key={style} className="flex items-center gap-2 text-neutral-300 text-sm">
+                                        <input
+                                          type="radio"
+                                          value={style}
+                                          checked={sadaUnderDraft.performance_style === style}
+                                          onChange={(e) =>
+                                            setSadaUnderDraft({ ...sadaUnderDraft, performance_style: e.target.value })
+                                          }
+                                          className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
+                                        />
+                                        {style}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-neutral-400 text-xs mb-2">Kalam Language</label>
+                                  <div className="space-y-2">
+                                    {vocalist.languages_performed.map(language => (
+                                      <label key={language} className="flex items-center gap-2 text-neutral-300 text-sm">
+                                        <input
+                                          type="radio"
+                                          value={language}
+                                          checked={kalamUnderDraft.language === language}
+                                          onChange={(e) =>
+                                            setkalamUnderDraft({ ...kalamUnderDraft, language: e.target.value })
+                                          }
+                                          className="lowercase! w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
+                                        />
+                                        {language}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                              <label className="block text-sm font-semibold text-[var(--color-text-primary)]! mb-2">
+                                Sada Title <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                name='title'
+                                value={sadaUnderDraft.title}
+                                onChange={handleChange}
+                                maxLength={100}
+                                className="form-input w-full px-4 py-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)]"
+                                placeholder="The name you wish to your sada to be called"
+                              />
+                            </div>
+                            {/* <EditorProvider>
                           <Editor name='content' className='border border-white!' value={kalamUnderDraft.content} onChange={handleChange}
                             style={{ minHeight: "300px", maxHeight: "600px", overflowY: "auto" }}
                           >
                           </Editor>
                         </EditorProvider> */}
-                        <input
-                          type="url"
-                          required
-                          name='title'
-                          value={sadaUnderDraft.title}
-                          onChange={handleChange}
-                          maxLength={100}
-                          className="form-input w-full px-4 py-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)]"
-                          placeholder="The name you wish to your sada to be called"
-                        />
-                        <div className="flex w-full justify-end">
-                          <button className='bg-yellow-400 text-black px-4 py-2 rounded-lg mt-4' onClick={handleSubmit}>
-                            {loading ? <Loader className='animate' /> : "Save & Submit"}
-                          </button>
+                            <input
+                              type="url"
+                              required
+                              name='title'
+                              value={sadaUnderDraft.title}
+                              onChange={handleChange}
+                              maxLength={100}
+                              className="form-input w-full px-4 py-3 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)]"
+                              placeholder="The name you wish to your sada to be called"
+                            />
+                            <div className="flex w-full justify-end">
+                              <button className='bg-yellow-400 text-black px-4 py-2 rounded-lg mt-4' onClick={handleSubmit}>
+                                {loading ? <Loader className='animate' /> : "Save & Submit"}
+                              </button>
+                            </div>
+                            {/* <button onClick={handleSubmitKalam}>Save</button> */}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Archive Tab */}
+
+                    {contentModal && kalam ?
+                      <div className="dashboard-modal-overlay">
+                        <div className="dashboard-modal">
+                          <div className="dashboard-modal-header">
+                            <div className="flex items-center justify-between">
+                              <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">Kalam Review</h2>
+                              <button
+                                onClick={() => {
+                                  // setSelectedKalam(null);
+                                  // setReviewNotes('');
+                                  setContentModal(false)
+                                }}
+                                className="text-[var(--dash-text-muted)] hover:text-[var(--dash-text-secondary)]"
+                              >
+                                <XCircle className="w-6 h-6" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="dashboard-modal-body overflow-y-scroll scrollbar-hide">
+                            <div className="space-y-4">
+
+                              {kalam.revision_notes ?
+                                <div>
+                                  <label className="dashboard-label">
+                                    Admin Notes
+                                  </label>
+                                  <div className="bg-red-600 rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                    <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                      {kalam.revision_notes}
+                                    </p>
+                                  </div>
+                                </div>
+                                : ""}
+                              <div>
+                                <label className="dashboard-label">
+                                  Title
+                                </label>
+                                <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                  <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                    {kalam.title}
+                                  </p>
+                                </div>
+                              </div>
+                              <div>
+                                <label className="dashboard-label">
+                                  Content
+                                </label>
+                                <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                  <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                    {kalam.content}
+                                  </p>
+                                </div>
+                              </div>
+
+                            </div>
+                          </div>
+
+                          <div className="dashboard-modal-footer">
+                            <button
+                              disabled={kalam.status !== "draft"}
+                              onClick={() => handleUpdateStatus(kalam, 'under review')}
+                              className="flex-1 disabled:opacity-50 bg-[var(--dash-status-approved)] hover:opacity-90 text-white rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
+                            >
+                              {kalam.status === "draft" ? <CheckCircle className="w-5 h-5" /> : ""}
+                              {kalam.status === "draft" ? "Submit Kalam" : kalam.status === "under review" ? "Under Review" : "Submitted"}
+                            </button>
+                            <button
+                              disabled={kalam.status !== "draft"}
+                              onClick={() => {
+                                handleDelete(kalam.id)
+                              }}
+                              className="flex-1 disabled:opacity-50 dashboard-btn-danger flex items-center justify-center gap-2"
+                            >
+                              <XCircle className="w-5 h-5" />
+                              Delete Kalam
+                            </button>
+                          </div>
                         </div>
-                        {/* <button onClick={handleSubmitKalam}>Save</button> */}
+                      </div>
+                      : ""}
+
+                    {activeTab === 'my-content' && writer.languages.length > 0 && (
+                      <div className="space-y-6">
+                        <div className="flex flex-wrap gap-4 items-center">
+                          <div className="relative flex-1 min-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 w-5 h-5" />
+                            <input
+                              type="text"
+                              placeholder="Search unpublished kalams..."
+                              value={myContentSearch}
+                              onChange={(e) => setMyContentSearch(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white"
+                            />
+                          </div>
+                          <div className="w-48">
+                            <input
+                              type="date"
+                              value={myContentDate}
+                              onChange={(e) => setMyContentDate(e.target.value)}
+                              className="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white"
+                              style={{ colorScheme: 'dark' }}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {kalams.filter(k => k.status !== "published" && (!myContentSearch || k.title.toLowerCase().includes(myContentSearch.toLowerCase())) && (!myContentDate || (k.created_at && new Date(k.created_at).toISOString().split('T')[0] === myContentDate))).length > 0 ? (
+                            kalams.filter(k => k.status !== "published" && (!myContentSearch || k.title.toLowerCase().includes(myContentSearch.toLowerCase())) && (!myContentDate || (k.created_at && new Date(k.created_at).toISOString().split('T')[0] === myContentDate))).map((kalam: any) => (
+                              <div key={kalam.id} className="bg-neutral-900/80 border border-neutral-800 rounded-xl p-6 hover:border-neutral-700 transition-all flex flex-col h-full relative group shadow-lg">
+                                <div className="flex justify-between items-start mb-4">
+                                  <h3 className="text-xl font-bold text-white line-clamp-2">{kalam.title}</h3>
+                                  <span className={`px-2.5 py-1 text-xs rounded-full font-semibold whitespace-nowrap ml-3 ${getStatusColor(kalam.status)} bg-opacity-10`}>
+                                    {kalam.status}
+                                  </span>
+                                </div>
+
+                                <div className="space-y-2 mb-6 flex-1">
+                                  <div className="flex items-center text-sm text-neutral-400">
+                                    <span className="w-24">Language:</span>
+                                    <span className="text-neutral-200 capitalize font-medium">{kalam.language}</span>
+                                  </div>
+                                  <div className="flex items-center text-sm text-neutral-400">
+                                    <span className="w-24">Style:</span>
+                                    <span className="text-neutral-200 capitalize font-medium">{kalam.writing_style}</span>
+                                  </div>
+                                  <div className="flex items-center text-sm text-neutral-500 mt-2">
+                                    <span className="w-24">ID:</span>
+                                    <span className="truncate">{kalam.id}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex gap-3 pt-4 border-t border-neutral-800/50 mt-auto">
+                                  <button
+                                    onClick={() => handleShowContent(kalam)}
+                                    className="flex-1 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                  >
+                                    View
+                                  </button>
+                                  <button
+                                    onClick={() => handleEdit(kalam)}
+                                    className="flex-1 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-full p-8 text-center text-neutral-500 border border-neutral-800 rounded-xl bg-neutral-900/50">
+                              No matching kalams found.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {activeTab === 'published' && writer.languages.length > 0 && (
+                      <div className="space-y-6">
+                        <div className="flex flex-wrap gap-4 items-center">
+                          <div className="relative flex-1 min-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 w-5 h-5" />
+                            <input
+                              type="text"
+                              placeholder="Search published kalams..."
+                              value={publishedSearch}
+                              onChange={(e) => setPublishedSearch(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white"
+                            />
+                          </div>
+                          <div className="w-48">
+                            <input
+                              type="date"
+                              value={publishedDate}
+                              onChange={(e) => setPublishedDate(e.target.value)}
+                              className="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white"
+                              style={{ colorScheme: 'dark' }}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {kalams.filter(k => k.status === "published" && (!publishedSearch || k.title.toLowerCase().includes(publishedSearch.toLowerCase())) && (!publishedDate || (k.created_at && new Date(k.created_at).toISOString().split('T')[0] === publishedDate))).length > 0 ? (
+                            kalams.filter(k => k.status === "published" && (!publishedSearch || k.title.toLowerCase().includes(publishedSearch.toLowerCase())) && (!publishedDate || (k.created_at && new Date(k.created_at).toISOString().split('T')[0] === publishedDate))).map((kalam: any) => (
+                              <div key={kalam.id} className="bg-neutral-900/80 border border-neutral-800 rounded-xl p-6 hover:border-neutral-700 transition-all flex flex-col h-full relative group shadow-lg">
+                                <div className="flex justify-between items-start mb-4">
+                                  <h3 className="text-xl font-bold text-white line-clamp-2">{kalam.title}</h3>
+                                  <span className={`px-2.5 py-1 text-xs rounded-full font-semibold whitespace-nowrap ml-3 ${getStatusColor(kalam.status)} bg-opacity-10`}>
+                                    {kalam.status}
+                                  </span>
+                                </div>
+
+                                <div className="space-y-2 mb-6 flex-1">
+                                  <div className="flex items-center text-sm text-neutral-400">
+                                    <span className="w-24">Language:</span>
+                                    <span className="text-neutral-200 capitalize font-medium">{kalam.language}</span>
+                                  </div>
+                                  <div className="flex items-center text-sm text-neutral-400">
+                                    <span className="w-24">Style:</span>
+                                    <span className="text-neutral-200 capitalize font-medium">{kalam.writing_style}</span>
+                                  </div>
+                                  <div className="flex items-center text-sm text-neutral-500 mt-2">
+                                    <span className="w-24">ID:</span>
+                                    <span className="truncate">{kalam.id.substring(0, 8)}...</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex gap-3 pt-4 border-t border-neutral-800/50 mt-auto">
+                                  <button
+                                    onClick={() => handleShowContent(kalam)}
+                                    className="flex-1 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                  >
+                                    View
+                                  </button>
+                                  <button
+                                    onClick={() => handleEdit(kalam)}
+                                    className="flex-1 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-full p-8 text-center text-neutral-500 border border-neutral-800 rounded-xl bg-neutral-900/50">
+                              No matching kalams found.
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
                 )}
-
-                {/* Archive Tab */}
-
-                {contentModal && kalam ?
-                  <div className="dashboard-modal-overlay">
-                    <div className="dashboard-modal">
-                      <div className="dashboard-modal-header">
-                        <div className="flex items-center justify-between">
-                          <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">Kalam Review</h2>
-                          <button
-                            onClick={() => {
-                              // setSelectedKalam(null);
-                              // setReviewNotes('');
-                              setContentModal(false)
-                            }}
-                            className="text-[var(--dash-text-muted)] hover:text-[var(--dash-text-secondary)]"
-                          >
-                            <XCircle className="w-6 h-6" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="dashboard-modal-body overflow-y-scroll scrollbar-hide">
-                        <div className="space-y-4">
-
-                          {kalam.revision_notes ?
-                            <div>
-                              <label className="dashboard-label">
-                                Admin Notes
-                              </label>
-                              <div className="bg-red-600 rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                                <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                  {kalam.revision_notes}
-                                </p>
-                              </div>
-                            </div>
-                            : ""}
-                          <div>
-                            <label className="dashboard-label">
-                              Title
-                            </label>
-                            <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                              <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                {kalam.title}
-                              </p>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="dashboard-label">
-                              Content
-                            </label>
-                            <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                              <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                {kalam.content}
-                              </p>
-                            </div>
-                          </div>
-
-                        </div>
-                      </div>
-
-                      <div className="dashboard-modal-footer">
-                        <button
-                          disabled={kalam.status !== "draft"}
-                          onClick={() => handleUpdateStatus(kalam, 'under review')}
-                          className="flex-1 disabled:opacity-50 bg-[var(--dash-status-approved)] hover:opacity-90 text-white rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
-                        >
-                          {kalam.status === "draft" ? <CheckCircle className="w-5 h-5" /> : ""}
-                          {kalam.status === "draft" ? "Submit Kalam" : kalam.status === "under review" ? "Under Review" : "Submitted"}
-                        </button>
-                        <button
-                          disabled={kalam.status !== "draft"}
-                          onClick={() => {
-                            handleDelete(kalam.id)
-                          }}
-                          className="flex-1 disabled:opacity-50 dashboard-btn-danger flex items-center justify-center gap-2"
-                        >
-                          <XCircle className="w-5 h-5" />
-                          Delete Kalam
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  : ""}
-
-                {activeTab === 'archives' && writer.languages.length > 0 && (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full border border-gray-200">
-                      <thead className="">
-                        <tr>
-                          <th className="p-3 border">ID</th>
-                          <th className="p-3 border">Title</th>
-                          {/* <th className="p-3 border">User ID</th> */}
-                          {/* <th className="p-3 border">Writer ID</th> */}
-                          <th className="p-3 border">Language</th>
-                          <th className="p-3 border">Writing Style</th>
-                          <th className="p-3 border">Status</th>
-                          <th className="p-3 border">Content</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {kalams.map((kalam: any) => (
-                          <>
-                            <tr key={kalam.id} className="text-center">
-                              <td className="p-3 border">{kalam.id}</td>
-                              <td className="p-3 border">{kalam.title}</td>
-                              <td className="p-3 border">{kalam.language}</td>
-                              <td className="p-3 border">{kalam.writing_style}</td>
-                              <td className="p-3 border capitalize">{kalam.status}</td>
-                              <td className="p-3 border flex gap-3 justify-center">
-                                <button
-                                  onClick={() => handleShowContent(kalam)}
-                                  className="bg-blue-500 text-black rounded-lg px-4 py-2"
-                                >
-                                  View
-                                </button>
-
-                                <button
-                                  onClick={() => handleEdit(kalam)}
-                                  className="bg-yellow-500 text-black rounded-lg px-4 py-2"
-                                >
-                                  Edit
-                                </button>
-                              </td>
-                            </tr>
-                          </>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </>
-            )}
-
+              </div>
+            </div>
           </div>
         </div>
       </PageContainer>

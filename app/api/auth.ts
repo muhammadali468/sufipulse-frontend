@@ -98,6 +98,9 @@ export const logout = () => {
 export const refreshToken = () => {
     return api.post(`${API_URL}/auth/refresh-token`)
 }
+export const updatePassword = (currentPassword: string, newPassword: string) => {
+    return api.post(`${API_URL}/auth/update-password`, { currentPassword, newPassword });
+}
 // WRITER
 export const createWriterProfile = (form: WriterFormData) => {
     return api.post(`${API_URL}/writer/create-profile`, form)
