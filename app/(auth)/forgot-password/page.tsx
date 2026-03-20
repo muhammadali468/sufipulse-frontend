@@ -6,23 +6,23 @@ import { Lock, Loader } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as api from "../../api/auth";
 import Link from 'next/link';
-export default function ForgotPassword(){
+export default function ForgotPassword() {
     const [email, setEmail] = useState("")
     const BASE_URL = process.env.NEXT_PUBLIC_API_URL
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { user, isAdmin } = useAuth();
+    const { user } = useAuth();
     const router = useRouter()
     // Role-aware redirect after successful login
     useEffect(() => {
         if (user) {
-            if (isAdmin) {
+            if (user.role === "admin") {
                 router.push('/admin');
             } else {
                 router.push('/user/dashboard');
             }
         }
-    }, [user, isAdmin]);
+    }, [user]);
     const handleChange = (e: any) => {
         setEmail(e.target.value);
     }

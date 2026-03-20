@@ -14,4 +14,6 @@ export interface VocalistProfileType {
   willing_editorial_approval: boolean | null;
   accept_producer_coordination: boolean;
   accept_framework: boolean;
+  status?: string;
+  id?: string | undefined;
 }

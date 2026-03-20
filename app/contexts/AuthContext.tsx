@@ -3,7 +3,7 @@ import { createContext, useState, useEffect, ReactNode, useContext } from "react
 import { jwtDecode } from "jwt-decode"
 import * as api from "../api/auth"
 import { useRouter } from "next/navigation";
-import { WriterFormData } from "../components/writers/WriterCredentialsForm";
+// import { WriterFormData } from "../components/writers/WriterCredentialsForm";
 import { Loader } from "lucide-react";
 
 type User = { id: string, role: string, email: string, full_name: string, is_verified: boolean };
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-    const [isAdmin, setIsAdmin] = useState<boolean>(false)
+    // const [isAdmin, setIsAdmin] = useState<boolean>(false)
     const [isHydrated, setIsHydrated] = useState(false); // Add hydration flag
     // const [res, setRes] = useState() as any
     const [profileStatus, setProfileStatus] = useState<string>("")

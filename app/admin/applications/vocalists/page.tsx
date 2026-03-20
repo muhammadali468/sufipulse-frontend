@@ -120,9 +120,9 @@ export default function AdminVocalistApplications() {
                 return <Clock className="w-3 h-3" />;
         }
     }
-    const handleUpdateStatus = async (id: string, status: string) => {
+    const handleUpdateStatus = async (id: string | undefined, status: string) => {
         // if (!kalam) return;
-
+        if (!id) return;
         try {
             await api.updateVocalistStatus(
                 id,
@@ -367,16 +367,7 @@ export default function AdminVocalistApplications() {
                                         </div>
                                     </div>
 
-                                    {selectedApp.previous_publications && (
-                                        <div>
-                                            <label className="dashboard-label">Previous Publications</label>
-                                            <div className="bg-[var(--dash-bg-secondary)] rounded-lg p-4 border border-[var(--dash-border)]">
-                                                <p className="text-[var(--dash-text-secondary)] whitespace-pre-wrap">
-                                                    {selectedApp.previous_publications}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
+
 
                                     {/* <div>
                                         <label className="dashboard-label">
@@ -413,7 +404,7 @@ export default function AdminVocalistApplications() {
                                 </div>
                             </div>
 
-                            <div className="dashboard-modal-footer">
+                            {selectedApp.id ? <div className="dashboard-modal-footer">
                                 <div className="grid grid-cols-4 gap-3 w-full">
                                     <button
                                         onClick={() => handleUpdateStatus(selectedApp.id, 'approved')}
@@ -452,7 +443,7 @@ export default function AdminVocalistApplications() {
                                         Reject
                                     </button>
                                 </div>
-                            </div>
+                            </div> : ""}
                         </div>
                     </div>
                 )}

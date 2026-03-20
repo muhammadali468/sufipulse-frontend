@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { X, Loader2, AlertCircle } from 'lucide-react';
 import { Card } from '../primitives/Card';
 import { PrimaryButton } from '../primitives/PrimaryButton';
-import { supabase } from '../../lib/supabase';
-import { sanitizeInput } from '../../lib/sanitization';
+// import { supabase } from '../../lib/supabase';
+// import { DOMPurify.sanitize } from '../../lib/sanitization';
+import DOMPurify from "dompurify";
 import { WriterSubmissionSuccessModal } from './WriterSubmissionSuccessModal';
 
 interface WriterApplicationFormProps {
@@ -24,27 +25,27 @@ export function WriterApplicationForm({ onClose }: WriterApplicationFormProps) {
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('🔍 Auth user:', user);
+  // useEffect(() => {
+  //   const getUser = async () => {
+  //     const { data: { user } } = await supabase.auth.getUser();
+  //     console.log('🔍 Auth user:', user);
 
-      if (user) {
-        // Fetch the public.users.id using auth_user_id
-        const { data: publicUser, error } = await supabase
-          .from('users')
-          .select('id')
-          .eq('auth_user_id', user.id)
-          .maybeSingle();
+  //     if (user) {
+  //       // Fetch the public.users.id using auth_user_id
+  //       const { data: publicUser, error } = await supabase
+  //         .from('users')
+  //         .select('id')
+  //         .eq('auth_user_id', user.id)
+  //         .maybeSingle();
 
-        console.log('🔍 Public user:', publicUser, 'Error:', error);
-        setUserId(publicUser?.id || null);
-      } else {
-        setUserId(null);
-      }
-    };
-    getUser();
-  }, []);
+  //       console.log('🔍 Public user:', publicUser, 'Error:', error);
+  //       setUserId(publicUser?.id || null);
+  //     } else {
+  //       setUserId(null);
+  //     }
+  //   };
+  //   getUser();
+  // }, []);
 
   const validateInput = (data: typeof formData): string | null => {
     if (!data.pen_name.trim() || data.pen_name.trim().length < 2) {
@@ -90,47 +91,47 @@ export function WriterApplicationForm({ onClose }: WriterApplicationFormProps) {
       return;
     }
 
-    try {
-      console.log('🚀 Attempting insert with user_id:', userId);
-      const { data: insertData, error: insertError } = await supabase
-        .from('writer_applications')
-        .insert({
-          user_id: userId,
-          email: formData.email.trim(),
-          pen_name: formData.pen_name.trim(),
-          bio: formData.bio.trim(),
-          sample_work: formData.sample_work.trim(),
-          previous_publications: formData.previous_publications.trim() || null,
-          status: 'pending',
-        })
-        .select('id')
-        .single();
+    // try {
+    //   console.log('🚀 Attempting insert with user_id:', userId);
+    //   const { data: insertData, error: insertError } = await supabase
+    //     .from('writer_applications')
+    //     .insert({
+    //       user_id: userId,
+    //       email: formData.email.trim(),
+    //       pen_name: formData.pen_name.trim(),
+    //       bio: formData.bio.trim(),
+    //       sample_work: formData.sample_work.trim(),
+    //       previous_publications: formData.previous_publications.trim() || null,
+    //       status: 'pending',
+    //     })
+    //     .select('id')
+    //     .single();
 
-      if (insertError) {
-        console.error('❌ WRITER APPLICATION INSERT ERROR:', insertError);
-        console.error('Full error object:', JSON.stringify(insertError, null, 2));
-        if (insertError.code === '23505') {
-          setError('You have already submitted an application. Please wait for review.');
-        } else {
-          throw insertError;
-        }
-      } else {
-        const refId = insertData?.id
-          ? `SP-WRT-${new Date().getFullYear()}-${insertData.id.slice(0, 8).toUpperCase()}`
-          : undefined;
-        setSubmissionId(refId);
-        setSuccess(true);
-      }
-    } catch (err) {
-      console.error('❌ WRITER APPLICATION CATCH ERROR:', err);
-      setError(err instanceof Error ? err.message : 'Failed to submit application');
-    } finally {
-      setSubmitting(false);
-    }
+    //   if (insertError) {
+    //     console.error('❌ WRITER APPLICATION INSERT ERROR:', insertError);
+    //     console.error('Full error object:', JSON.stringify(insertError, null, 2));
+    //     if (insertError.code === '23505') {
+    //       setError('You have already submitted an application. Please wait for review.');
+    //     } else {
+    //       throw insertError;
+    //     }
+    //   } else {
+    //     const refId = insertData?.id
+    //       ? `SP-WRT-${new Date().getFullYear()}-${insertData.id.slice(0, 8).toUpperCase()}`
+    //       : undefined;
+    //     setSubmissionId(refId);
+    //     setSuccess(true);
+    //   }
+    // } catch (err) {
+    //   console.error('❌ WRITER APPLICATION CATCH ERROR:', err);
+    //   setError(err instanceof Error ? err.message : 'Failed to submit application');
+    // } finally {
+    //   setSubmitting(false);
+    // }
   };
 
   const handleChange = (field: string, value: string) => {
-    const sanitizedValue = sanitizeInput(value);
+    const sanitizedValue = DOMPurify.sanitize(value);
     setFormData(prev => ({ ...prev, [field]: sanitizedValue }));
   };
 
@@ -150,7 +151,7 @@ export function WriterApplicationForm({ onClose }: WriterApplicationFormProps) {
     >
       <Card
         className="max-w-2xl w-full my-8"
-        onClick={(e) => e.stopPropagation()}
+      // onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
           <div className="flex items-start justify-between mb-6">

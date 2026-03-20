@@ -15,6 +15,7 @@ import RichTextEditor from "../../components/ui/RichTextEditor"
 import Editor, {
   EditorProvider,
 } from "react-simple-wysiwyg";
+import { KalamUnderDraft } from '@/app/user/writer/dashboard/page';
 
 export interface SadaUnderDraft {
   title: string,
@@ -32,14 +33,14 @@ export interface Kalam {
   language: string;
   writing_style: string;
   content: string;
-  revision_notes?:string;
-  created_at?:any;
-  updated_at?:any;
+  revision_notes?: string;
+  created_at?: any;
+  updated_at?: any;
 }
 
 export default function SadaSubmission() {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  // const [submissions, setSubmissions] = useState<Submission[]>([]);
+  // const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'submissions' | 'notifications' | 'archives'>('submissions');
   const [status, setStatus] = useState("")
@@ -115,25 +116,25 @@ export default function SadaSubmission() {
   }
 
   const handleUpdateStatus = async (kalam: Kalam, status: string) => {
-  if (!kalam) return;
+    if (!kalam) return;
 
-  try {
-    await api.updateKalamStatus(
-      kalam.id,
-      status,
-      null
-    );
+    try {
+      await api.updateKalamStatus(
+        kalam.id,
+        status,
+        null
+      );
 
-    alert("Status updated");
+      alert("Status updated");
 
-    setKalam(null);
-    setContentModal(false);
+      setKalam(null);
+      setContentModal(false);
 
-    loadWriterKalams(); // refresh table
-  } catch (err: any) {
-    alert(err.response?.data?.error || err.message);
-  }
-};
+      loadWriterKalams(); // refresh table
+    } catch (err: any) {
+      alert(err.response?.data?.error || err.message);
+    }
+  };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -195,7 +196,7 @@ export default function SadaSubmission() {
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
                 )}
               </button>
-              
+
               <button
                 onClick={() => setActiveTab('archives')}
                 className={`pb-4 px-4 font-semibold transition-colors relative ${activeTab === 'archives'
@@ -304,88 +305,88 @@ export default function SadaSubmission() {
                   </div>
                 )}
 
-                
+
                 {contentModal && kalam ?
-                    <div className="dashboard-modal-overlay">
-                      <div className="dashboard-modal">
-                        <div className="dashboard-modal-header">
-                          <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">Kalam Review</h2>
-                            <button
-                              onClick={() => {
-                                // setSelectedKalam(null);
-                                // setReviewNotes('');
-                                setContentModal(false)
-                              }}
-                              className="text-[var(--dash-text-muted)] hover:text-[var(--dash-text-secondary)]"
-                            >
-                              <XCircle className="w-6 h-6" />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="dashboard-modal-body overflow-y-scroll scrollbar-hide">
-                          <div className="space-y-4">
-
-                            {kalam.revision_notes ?
-                              <div>
-                                <label className="dashboard-label">
-                                  Admin Notes
-                                </label>
-                                <div className="bg-red-600 rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                                  <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                    {kalam.revision_notes}
-                                  </p>
-                                </div>
-                              </div>
-                              : ""}
-                            <div>
-                              <label className="dashboard-label">
-                                Title
-                              </label>
-                              <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                                <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                  {kalam.title}
-                                </p>
-                              </div>
-                            </div>
-                            <div>
-                              <label className="dashboard-label">
-                                Content
-                              </label>
-                              <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
-                                <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
-                                  {kalam.content}
-                                </p>
-                              </div>
-                            </div>
-
-                          </div>
-                        </div>
-
-                        <div className="dashboard-modal-footer">
+                  <div className="dashboard-modal-overlay">
+                    <div className="dashboard-modal">
+                      <div className="dashboard-modal-header">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-2xl font-bold text-[var(--dash-text-primary)]">Kalam Review</h2>
                           <button
-                            disabled={kalam.status !== "draft"}
-                            onClick={() => handleUpdateStatus(kalam, 'under review')}
-                            className="flex-1 disabled:opacity-50 bg-[var(--dash-status-approved)] hover:opacity-90 text-white rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
-                          >
-                            {kalam.status === "draft" ? <CheckCircle className="w-5 h-5" /> : ""}
-                            {kalam.status === "draft" ? "Submit Kalam" : kalam.status === "under review" ? "Under Review" : "Submitted"}
-                          </button>
-                          <button
-                            disabled={kalam.status !== "draft"}
                             onClick={() => {
-                              handleDelete(kalam.id)
+                              // setSelectedKalam(null);
+                              // setReviewNotes('');
+                              setContentModal(false)
                             }}
-                            className="flex-1 disabled:opacity-50 dashboard-btn-danger flex items-center justify-center gap-2"
+                            className="text-[var(--dash-text-muted)] hover:text-[var(--dash-text-secondary)]"
                           >
-                            <XCircle className="w-5 h-5" />
-                            Delete Kalam
+                            <XCircle className="w-6 h-6" />
                           </button>
                         </div>
                       </div>
+
+                      <div className="dashboard-modal-body overflow-y-scroll scrollbar-hide">
+                        <div className="space-y-4">
+
+                          {kalam.revision_notes ?
+                            <div>
+                              <label className="dashboard-label">
+                                Admin Notes
+                              </label>
+                              <div className="bg-red-600 rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                                <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                  {kalam.revision_notes}
+                                </p>
+                              </div>
+                            </div>
+                            : ""}
+                          <div>
+                            <label className="dashboard-label">
+                              Title
+                            </label>
+                            <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                              <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                {kalam.title}
+                              </p>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="dashboard-label">
+                              Content
+                            </label>
+                            <div className="bg-[var(--dash-bg-primary)] rounded p-4 max-h-60 overflow-y-auto border border-[var(--dash-border)]">
+                              <p className="text-[var(--dash-text-primary)] font-arabic text-lg leading-relaxed">
+                                {kalam.content}
+                              </p>
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+
+                      <div className="dashboard-modal-footer">
+                        <button
+                          disabled={kalam.status !== "draft"}
+                          onClick={() => handleUpdateStatus(kalam, 'under review')}
+                          className="flex-1 disabled:opacity-50 bg-[var(--dash-status-approved)] hover:opacity-90 text-white rounded-lg px-4 py-3 transition-opacity flex items-center justify-center gap-2 font-medium"
+                        >
+                          {kalam.status === "draft" ? <CheckCircle className="w-5 h-5" /> : ""}
+                          {kalam.status === "draft" ? "Submit Kalam" : kalam.status === "under review" ? "Under Review" : "Submitted"}
+                        </button>
+                        <button
+                          disabled={kalam.status !== "draft"}
+                          onClick={() => {
+                            handleDelete(kalam.id)
+                          }}
+                          className="flex-1 disabled:opacity-50 dashboard-btn-danger flex items-center justify-center gap-2"
+                        >
+                          <XCircle className="w-5 h-5" />
+                          Delete Kalam
+                        </button>
+                      </div>
                     </div>
-                  
+                  </div>
+
 
                   : ""}
 

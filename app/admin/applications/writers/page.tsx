@@ -118,9 +118,9 @@ export default function AdminWriterApplications() {
                 return <Clock className="w-3 h-3" />;
         }
     }
-    const handleUpdateStatus = async (id: string, status: string) => {
+    const handleUpdateStatus = async (id: string | undefined, status: string) => {
         // if (!kalam) return;
-
+        if (!id) return
         try {
             await api.updateWriterStatus(
                 id,

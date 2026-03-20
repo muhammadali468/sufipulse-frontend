@@ -1,54 +1,62 @@
 import { useState } from 'react';
-import { sanitizeInput } from '../../lib/sanitization';
-
-interface ProducerFormData {
-  fullName: string;
-  professionalName: string;
-  country: string;
-  city: string;
-  email: string;
-  yearsExperience: string;
-  productionFocus: string[];
-  primaryTools: string;
-  musicalBackground: string;
-  portfolioLink: string;
-  structuredVocalExperience: boolean | null;
-  workflowAlignment: boolean | null;
-  centralizationAcknowledgment: boolean;
-  frameworkAcknowledgment: boolean;
-}
+// import { DOMPurify.sanitize } from '../../../lib/sanitization';
+import DOMPurify from "dompurify";
+import { useAuth } from '../../contexts/AuthContext';
+import * as api from "../../api/auth";
+import { Loader } from 'lucide-react';
+import Link from 'next/link';
+import { ProducerProfileType } from '../../types/producer.types';
 
 export function ProducerCredentialsForm() {
+  const { user } = useAuth();
   const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState<ProducerFormData>({
-    fullName: '',
-    professionalName: '',
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const [formData, setFormData] = useState<ProducerProfileType>({
+    full_name: user ? user.full_name : '',
+    professional_name: '',
     country: '',
     city: '',
-    email: '',
-    yearsExperience: '',
-    productionFocus: [],
-    primaryTools: '',
-    musicalBackground: '',
-    portfolioLink: '',
-    structuredVocalExperience: null,
-    workflowAlignment: null,
-    centralizationAcknowledgment: false,
-    frameworkAcknowledgment: false,
+    email: user ? user.email : '',
+    years_experience: '',
+    primary_production_focus: [],
+    primary_tools: '',
+    musical_background: '',
+    portfolio_link: '',
+    worked_structured_production: null,
+    willing_defined_sequence: null,
+    acknowledge_centralized_control: false,
+    accept_framework: false,
   });
 
   const handleCheckboxChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      productionFocus: prev.productionFocus.includes(value)
-        ? prev.productionFocus.filter(f => f !== value)
-        : [...prev.productionFocus, value]
+      primary_production_focus: prev.primary_production_focus.includes(value)
+        ? prev.primary_production_focus.filter(f => f !== value)
+        : [...prev.primary_production_focus, value]
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+
+    try {
+      setLoading(true);
+      setError('');
+      console.log(formData);
+
+      const res = await api.createProducerProfile(formData);
+
+      setSubmitted(true);
+      alert("Producer profile Submitted");
+    } catch (err) {
+      console.error(err);
+      setError('Failed to submit producer profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -65,6 +73,12 @@ export function ProducerCredentialsForm() {
     <form onSubmit={handleSubmit} className="bg-neutral-950/50 border border-neutral-800/50 rounded p-8">
       <h3 className="text-lg font-semibold text-white mb-6">Submit Producer Profile</h3>
 
+      {error && (
+        <div className="mb-6 p-4 bg-red-900/20 border border-red-800/50 rounded">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-5">
           <div>
@@ -76,8 +90,8 @@ export function ProducerCredentialsForm() {
                 <input
                   type="text"
                   required
-                  value={formData.fullName}
-                  onChange={e => setFormData({ ...formData, fullName: sanitizeInput(e.target.value) })}
+                  value={formData.full_name}
+                  onChange={e => setFormData({ ...formData, full_name: DOMPurify.sanitize(e.target.value) })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -86,8 +100,8 @@ export function ProducerCredentialsForm() {
                 <label className="block text-neutral-400 text-xs mb-1.5">Professional Name (if applicable)</label>
                 <input
                   type="text"
-                  value={formData.professionalName}
-                  onChange={e => setFormData({ ...formData, professionalName: sanitizeInput(e.target.value) })}
+                  value={formData.professional_name}
+                  onChange={e => setFormData({ ...formData, professional_name: DOMPurify.sanitize(e.target.value) })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -117,7 +131,7 @@ export function ProducerCredentialsForm() {
                   type="text"
                   required
                   value={formData.city}
-                  onChange={e => setFormData({ ...formData, city: sanitizeInput(e.target.value) })}
+                  onChange={e => setFormData({ ...formData, city: DOMPurify.sanitize(e.target.value) })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -137,8 +151,8 @@ export function ProducerCredentialsForm() {
                 <label className="block text-neutral-400 text-xs mb-1.5">Years of Experience</label>
                 <select
                   required
-                  value={formData.yearsExperience}
-                  onChange={e => setFormData({ ...formData, yearsExperience: e.target.value })}
+                  value={formData.years_experience}
+                  onChange={e => setFormData({ ...formData, years_experience: e.target.value })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 >
                   <option value="">Select experience</option>
@@ -169,7 +183,7 @@ export function ProducerCredentialsForm() {
                     <label key={focus} className="flex items-center gap-2 text-neutral-300 text-sm">
                       <input
                         type="checkbox"
-                        checked={formData.productionFocus.includes(focus)}
+                        checked={formData.primary_production_focus.includes(focus)}
                         onChange={() => handleCheckboxChange(focus)}
                         className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                       />
@@ -184,8 +198,8 @@ export function ProducerCredentialsForm() {
                 <input
                   type="text"
                   required
-                  value={formData.primaryTools}
-                  onChange={e => setFormData({ ...formData, primaryTools: sanitizeInput(e.target.value) })}
+                  value={formData.primary_tools}
+                  onChange={e => setFormData({ ...formData, primary_tools: DOMPurify.sanitize(e.target.value) })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -195,8 +209,8 @@ export function ProducerCredentialsForm() {
                 <textarea
                   required
                   rows={4}
-                  value={formData.musicalBackground}
-                  onChange={e => setFormData({ ...formData, musicalBackground: sanitizeInput(e.target.value) })}
+                  value={formData.musical_background}
+                  onChange={e => setFormData({ ...formData, musical_background: DOMPurify.sanitize(e.target.value) })}
                   placeholder="Brief overview of training, influences, or structured experience"
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
                 />
@@ -206,8 +220,8 @@ export function ProducerCredentialsForm() {
                 <label className="block text-neutral-400 text-xs mb-1.5">Portfolio Link (optional)</label>
                 <input
                   type="url"
-                  value={formData.portfolioLink}
-                  onChange={e => setFormData({ ...formData, portfolioLink: e.target.value })}
+                  value={formData.portfolio_link}
+                  onChange={e => setFormData({ ...formData, portfolio_link: e.target.value })}
                   className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                 />
               </div>
@@ -230,8 +244,8 @@ export function ProducerCredentialsForm() {
                       type="radio"
                       name="structuredExperience"
                       required
-                      checked={formData.structuredVocalExperience === true}
-                      onChange={() => setFormData({ ...formData, structuredVocalExperience: true })}
+                      checked={formData.worked_structured_production === true}
+                      onChange={() => setFormData({ ...formData, worked_structured_production: true })}
                       className="w-4 h-4"
                     />
                     Yes
@@ -241,8 +255,8 @@ export function ProducerCredentialsForm() {
                       type="radio"
                       name="structuredExperience"
                       required
-                      checked={formData.structuredVocalExperience === false}
-                      onChange={() => setFormData({ ...formData, structuredVocalExperience: false })}
+                      checked={formData.worked_structured_production === false}
+                      onChange={() => setFormData({ ...formData, worked_structured_production: false })}
                       className="w-4 h-4"
                     />
                     No
@@ -258,8 +272,8 @@ export function ProducerCredentialsForm() {
                   <input
                     type="checkbox"
                     required
-                    checked={formData.workflowAlignment === true}
-                    onChange={e => setFormData({ ...formData, workflowAlignment: e.target.checked ? true : null })}
+                    checked={formData.willing_defined_sequence === true}
+                    onChange={e => setFormData({ ...formData, willing_defined_sequence: e.target.checked ? true : null })}
                     className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                   />
                   Yes
@@ -274,8 +288,8 @@ export function ProducerCredentialsForm() {
                   <input
                     type="checkbox"
                     required
-                    checked={formData.centralizationAcknowledgment}
-                    onChange={e => setFormData({ ...formData, centralizationAcknowledgment: e.target.checked })}
+                    checked={formData.acknowledge_centralized_control}
+                    onChange={e => setFormData({ ...formData, acknowledge_centralized_control: e.target.checked })}
                     className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                   />
                   Yes
@@ -299,8 +313,8 @@ export function ProducerCredentialsForm() {
               <input
                 type="checkbox"
                 required
-                checked={formData.frameworkAcknowledgment}
-                onChange={e => setFormData({ ...formData, frameworkAcknowledgment: e.target.checked })}
+                checked={formData.accept_framework}
+                onChange={e => setFormData({ ...formData, accept_framework: e.target.checked })}
                 className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded mt-0.5 shrink-0"
               />
               <span>I acknowledge and accept the institutional production framework.</span>
@@ -310,12 +324,22 @@ export function ProducerCredentialsForm() {
       </div>
 
       <div className="mt-8 flex justify-end">
-        <button
-          type="submit"
-          className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors"
-        >
-          Submit Producer Profile
-        </button>
+        {user ? (
+          <button
+            type="submit"
+            disabled={!user?.is_verified || !formData.accept_framework || !formData.acknowledge_centralized_control}
+            className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading ? <Loader className="animate-spin w-4 h-4" /> : 'Submit Producer Profile'}
+          </button>
+        ) : (
+          <Link
+            className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors"
+            href="/login"
+          >
+            Login to Submit
+          </Link>
+        )}
       </div>
     </form>
   );

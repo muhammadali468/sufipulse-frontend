@@ -3,25 +3,11 @@ import { useEffect, useState } from 'react';
 import DOMPurify from "dompurify";
 import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
-import { Bell, FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, Loader } from 'lucide-react';
+import { Bell, FileText, Loader } from 'lucide-react';
 import * as api from "../../../api/auth"
 import { useAuth } from '@/app/contexts/AuthContext';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { VocalistProfileType } from '@/app/types/vocalist.types';
-import { WriterFormData } from '@/app/types/writer.types';
-
-interface Submission {
-  id: string;
-  submission_reference: string;
-  submission_type: string;
-  current_status: string;
-  submitter_name: string;
-  submission_data: any;
-  created_at: string;
-  status_updated_at: string;
-  admin_notes?: string;
-}
+import { LiteraryProfileType } from '@/app/types/literary.types';
 
 interface Notification {
   id: string;
@@ -35,113 +21,54 @@ interface Notification {
 }
 
 export default function UserProfile() {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'submissions' | 'notifications'>('submissions');
   const [status, setStatus] = useState("")
-  // const [writerProfile,setWriterProfile] = useState()
-  const [formData, setFormData] = useState<WriterFormData>({
-    full_name: "",
-    pen_name: "",
-    country: "",
-    city: "",
-    email: "",
-    years_experience: "",
-    primary_languages: [],
-    writing_styles: [],
-    literary_background: "",
-    thematic_focus: "",
-    sample_kalam: "",
-    previous_publications: "",
-    editorial_review_experience: false,
-    willing_editorial_process: false,
-    revision_acknowledged: false,
-    institutional_acknowledged: false,
-
-  });
-  const [vocalist, setVocalist] = useState<VocalistProfileType>({
+  const [formData, setFormData] = useState<LiteraryProfileType>({
     full_name: '',
-    performance_name: '',
+    professional_name: '',
     country: '',
     city: '',
     email: '',
     years_experience: '',
-    vocal_range: '',
-    performance_styles: [],
-    languages_performed: '',
-    musical_training: '',
-    sample_link: '',
-    worked_in_studio: null,
-    willing_editorial_approval: null,
-    accept_producer_coordination: false,
+    writing_focus: [],
+    languages: '',
+    background: '',
+    portfolio_link: '',
+    worked_editorial_process: null,
+    willing_review_process: null,
+    acknowledge_editorial_control: false,
     accept_framework: false,
   });
   const [error, setError] = useState('');
   const router = useRouter()
-  const loadWriterProfile = async () => {
+  
+  const loadLiteraryProfile = async () => {
     try {
-      const res = await api.readWriterProfile();
-      setFormData(prev => ({
-        ...prev,
-        ...res.data
-      }))
-      setStatus(res.data.profile_status)
-      console.log("formData", formData)
-    } catch (error) {
-      console.log(formData)
-      console.log(error)
-    }
-  }
-  const loadVocalistProfile = async () => {
-    try {
-      const res = await api.readVocalistProfile();
-
-      setVocalist(prev => ({
-        ...prev,
-        ...res.data
-      }));
-
-      setStatus(res.data.profile_status);
-
-      console.log("vocalist", res.data);
-
-    } catch (error) {
-      console.log(formData);
-      console.log(error);
+      setLoading(true)
+      const res = await api.readLiteraryProfile();
+      if(res.data) {
+        setFormData(prev => ({
+          ...prev,
+          ...res.data,
+          languages: Array.isArray(res.data.languages) ? res.data.languages.join(', ') : res.data.languages
+        }));
+        setStatus(res.data.profile_status || "");
+      }
+    } catch (err: any) {
+      if(err.response?.status !== 404) {
+         console.error(err);
+      }
+    } finally {
+      setLoading(false)
     }
   };
+
   useEffect(() => {
-
-    loadVocalistProfile();
-    loadWriterProfile()
-    console.log(formData)
+    loadLiteraryProfile();
   }, [])
-  const getStatusColor = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'approved' || statusLower === 'published') return 'text-green-400';
-    if (statusLower === 'rejected' || statusLower === 'declined') return 'text-red-400';
-    if (statusLower === 'under_review') return 'text-blue-400';
-    if (statusLower === 'revision_requested') return 'text-yellow-400';
-    return 'text-neutral-400';
-  };
-
-  const getStatusIcon = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'approved' || statusLower === 'published') return <CheckCircle className="w-5 h-5" />;
-    if (statusLower === 'rejected' || statusLower === 'declined') return <XCircle className="w-5 h-5" />;
-    if (statusLower === 'under_review') return <Eye className="w-5 h-5" />;
-    if (statusLower === 'revision_requested') return <AlertCircle className="w-5 h-5" />;
-    return <Clock className="w-5 h-5" />;
-  };
-
-  const formatSubmissionType = (type: string) => {
-    return type
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -153,94 +80,52 @@ export default function UserProfile() {
     });
   };
 
-  const handleDeleteProfile = async () => {
+  const handleDeleteProfile = async (e: any) => {
+    e.preventDefault();
     try {
-      const res = await api.deleteWriterProfile();
-      alert(res.data.message)
-      loadWriterProfile()
-    } catch (error) {
-      console.log(error)
+      const res = await api.deleteLiteraryProfile();
+      alert(res.data?.message || "Profile deleted");
+      window.location.reload();
+    } catch (err) {
+      console.error(err)
     }
   }
 
-  const handleDeleteVocalistProfile = async () => {
-    try {
-      const res = await api.deleteVocalistProfile();
-      alert(res.data.message)
-      loadVocalistProfile()
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  const handleSubmit = async (e: any) => {
+  const handleUpdateProfile = async (e: any) => {
     e.preventDefault()
-    // const payload = {
-    //   ...formData,
-    //   primary_languages: formData.primary_languages ? formData.primary_languages.trim().split(/[,\s]+/).filter(Boolean) : [] // split by space
-    // };
     const payload = {
-      ...vocalist,
-      primary_languages:
-        formData.primary_languages && formData.primary_languages.length > 0
-          ? String(formData.primary_languages).trim().split(/[,\s]+/).filter(Boolean)
-          : []
+      ...formData,
+      languages: 
+         typeof formData.languages === 'string'
+          ? formData.languages.split(',').map(lang => lang.trim()).filter(Boolean)
+          : formData.languages
     };
     try {
       setLoading(true)
-      const res = await api.updateWriterProfile(payload as any)
-      if (res.data.status === 401 || res.data.status === 400) {
+      const res = await api.updateLiteraryProfile(payload as any)
+      if (res.data?.status === 401 || res.data?.status === 400) {
         router.push("/login")
       }
-      alert("Writer profile Updated")
-      setLoading(false)
-    } catch (error) {
-      console.log(error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleUpdateVocalistProfile = async (e: any) => {
-    e.preventDefault()
-    const payload = {
-      ...vocalist,
-      languages_performed: vocalist.languages_performed
-        ? vocalist.languages_performed.trim().split(/[,\s]+/).filter(Boolean)
-        : [] // split by space
-    };
-    try {
-      setLoading(true)
-      const res = await api.updateVocalistProfile(payload)
-      if (res.data.status === 401 || res.data.status === 400) {
-        router.push("/login")
-      }
-      alert("Vocalist profile Updated")
-      setLoading(false)
-    } catch (error) {
-      console.log(error)
+      alert("Literary Contributor profile Updated")
+    } catch (err) {
+      console.error(err)
+      setError("Failed to update profile.")
     } finally {
       setLoading(false)
     }
   }
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
   const handleCheckboxChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      writing_styles: prev.writing_styles.includes(value)
-        ? prev.writing_styles.filter(s => s !== value)
-        : [...prev.writing_styles, value]
+      writing_focus: prev.writing_focus.includes(value)
+        ? prev.writing_focus.filter(f => f !== value)
+        : [...prev.writing_focus, value]
     }));
   };
-  const handleVocalistCheckboxChange = (value: string) => {
-    setVocalist(prev => ({
-      ...prev,
-      performance_styles: prev.performance_styles.includes(value)
-        ? prev.performance_styles.filter(s => s !== value)
-        : [...prev.performance_styles, value]
-    }));
-  };
+
   return (
     <Layout>
       <PageContainer>
@@ -295,23 +180,19 @@ export default function UserProfile() {
                 {/* Submissions Tab */}
                 {activeTab === 'submissions' && (
                   <div className="space-y-4">
-                    {formData.email === "" ? (
+                    {!formData.email && !status ? (
                       <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-12 text-center">
                         <FileText className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
                         <h3 className="text-xl font-semibold text-white mb-2">No Profile yet</h3>
                         <p className="text-neutral-400 mb-4">
                           Your profile will appear here once you apply or submit form.
                         </p>
-                        {/* <Link className='bg-amber-400 text-black! px-4 py-2 rounded-lg' href={"/writers/#submission"}>
-                          Submit Profile
-                        </Link> */}
-
                       </div>
                     ) : (
                       <form className="bg-neutral-950/50 border border-neutral-800/50 rounded p-8">
                         <div className="flex items-center gap-4 mb-6">
-                          <h3 className="text-lg font-semibold text-white">Writer Profile Status</h3>
-                          <div className="bg-yellow-400 capitalize text-black rounded-lg px-4 py-2">{status}</div>
+                          <h3 className="text-lg font-semibold text-white">Literary Contributor Profile</h3>
+                          {status && <div className="bg-yellow-400 capitalize text-black rounded-lg px-4 py-2">{status.replace(/_/g, " ")}</div>}
                         </div>
                         {error && (
                           <div className="mb-6 p-4 bg-red-900/20 border border-red-800/50 rounded">
@@ -330,7 +211,6 @@ export default function UserProfile() {
                                   <input
                                     type="text"
                                     required
-                                    maxLength={200}
                                     value={formData.full_name}
                                     onChange={e => setFormData({ ...formData, full_name: DOMPurify.sanitize(e.target.value) })}
                                     className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
@@ -338,12 +218,11 @@ export default function UserProfile() {
                                 </div>
 
                                 <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Pen Name (if applicable)</label>
+                                  <label className="block text-neutral-400 text-xs mb-1.5">Professional Name (if applicable)</label>
                                   <input
                                     type="text"
-                                    maxLength={200}
-                                    value={formData.pen_name}
-                                    onChange={e => setFormData({ ...formData, pen_name: DOMPurify.sanitize(e.target.value) })}
+                                    value={formData.professional_name}
+                                    onChange={e => setFormData({ ...formData, professional_name: DOMPurify.sanitize(e.target.value) })}
                                     className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                                   />
                                 </div>
@@ -372,7 +251,6 @@ export default function UserProfile() {
                                   <input
                                     type="text"
                                     required
-                                    maxLength={200}
                                     value={formData.city}
                                     onChange={e => setFormData({ ...formData, city: DOMPurify.sanitize(e.target.value) })}
                                     className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
@@ -413,65 +291,60 @@ export default function UserProfile() {
 
                               <div className="space-y-4">
                                 <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Primary Writing Languages</label>
-                                  <input
-                                    type="text"
-                                    required
-                                    maxLength={500}
-                                    value={formData.primary_languages}
-                                    onChange={e => setFormData({ ...formData, primary_languages: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="e.g., Urdu, Arabic, Persian, English"
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-2">Writing Style & Form</label>
+                                  <label className="block text-neutral-400 text-xs mb-2">Primary Writing Focus</label>
                                   <div className="space-y-2">
                                     {[
-                                      'Classical Ghazal',
-                                      'Nazm',
-                                      'Qasida',
-                                      'Hamd & Naat',
-                                      'Contemporary devotional',
-                                      'Free verse'
-                                    ].map(style => (
-                                      <label key={style} className="flex items-center gap-2 text-neutral-300 text-sm">
+                                      'Spiritual essays',
+                                      'Philosophical discourse',
+                                      'Sufi thought analysis',
+                                      'Contemporary reflection',
+                                      'Thematic commentary',
+                                      'Historical contextualization'
+                                    ].map(focus => (
+                                      <label key={focus} className="flex items-center gap-2 text-neutral-300 text-sm">
                                         <input
                                           type="checkbox"
-                                          checked={formData.writing_styles?.includes(style)}
-                                          onChange={() => handleCheckboxChange(style)}
+                                          checked={formData.writing_focus.includes(focus)}
+                                          onChange={() => handleCheckboxChange(focus)}
                                           className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                                         />
-                                        {style}
+                                        {focus}
                                       </label>
                                     ))}
                                   </div>
                                 </div>
 
                                 <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Literary Background</label>
+                                  <label className="block text-neutral-400 text-xs mb-1.5">Primary Languages</label>
+                                  <input
+                                    type="text"
+                                    required
+                                    value={formData.languages as string}
+                                    onChange={e => setFormData({ ...formData, languages: DOMPurify.sanitize(e.target.value) })}
+                                    placeholder="e.g., English, Urdu, Arabic"
+                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-neutral-400 text-xs mb-1.5">Academic or Literary Background</label>
                                   <textarea
                                     required
                                     rows={4}
-                                    maxLength={2000}
-                                    value={formData.literary_background}
-                                    onChange={e => setFormData({ ...formData, literary_background: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="Brief overview of literary training, influences, or formal education"
+                                    value={formData.background}
+                                    onChange={e => setFormData({ ...formData, background: DOMPurify.sanitize(e.target.value) })}
+                                    placeholder="Brief overview of education, training, or literary experience"
                                     className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
                                   />
                                 </div>
 
                                 <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Thematic Focus</label>
-                                  <textarea
-                                    required
-                                    rows={3}
-                                    maxLength={1000}
-                                    value={formData.thematic_focus}
-                                    onChange={e => setFormData({ ...formData, thematic_focus: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="Core themes you explore in your writing"
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
+                                  <label className="block text-neutral-400 text-xs mb-1.5">Portfolio or Published Work Link (optional)</label>
+                                  <input
+                                    type="url"
+                                    value={formData.portfolio_link}
+                                    onChange={e => setFormData({ ...formData, portfolio_link: e.target.value })}
+                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm"
                                   />
                                 </div>
                               </div>
@@ -480,38 +353,7 @@ export default function UserProfile() {
 
                           <div className="space-y-5">
                             <div>
-                              <h4 className="text-sm font-medium text-white mb-4">Sample Work & Publications</h4>
-
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Sample Kalam</label>
-                                  <textarea
-                                    required
-                                    rows={8}
-                                    maxLength={10000}
-                                    value={formData.sample_kalam}
-                                    onChange={e => setFormData({ ...formData, sample_kalam: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="Paste original kalam (must be unpublished work)"
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none font-mono"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-neutral-400 text-xs mb-1.5">Previous Publications (optional)</label>
-                                  <textarea
-                                    rows={3}
-                                    maxLength={2000}
-                                    value={formData.previous_publications}
-                                    onChange={e => setFormData({ ...formData, previous_publications: DOMPurify.sanitize(e.target.value) })}
-                                    placeholder="List any published works or credentials"
-                                    className="form-input w-full bg-neutral-900/50 rounded px-3 py-2 text-white text-sm resize-none"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            <div>
-                              <h4 className="text-sm font-medium text-white mb-4">Workflow Alignment</h4>
+                              <h4 className="text-sm font-medium text-white mb-4">Editorial Alignment</h4>
 
                               <div className="space-y-4">
                                 <div>
@@ -524,8 +366,8 @@ export default function UserProfile() {
                                         type="radio"
                                         name="editorialExperience"
                                         required
-                                        checked={formData.willing_editorial_process === true}
-                                        onChange={() => setFormData({ ...formData, willing_editorial_process: true })}
+                                        checked={formData.worked_editorial_process === true}
+                                        onChange={() => setFormData({ ...formData, worked_editorial_process: true })}
                                         className="w-4 h-4"
                                       />
                                       Yes
@@ -535,8 +377,8 @@ export default function UserProfile() {
                                         type="radio"
                                         name="editorialExperience"
                                         required
-                                        checked={formData.editorial_review_experience === false}
-                                        onChange={() => setFormData({ ...formData, editorial_review_experience: false })}
+                                        checked={formData.worked_editorial_process === false}
+                                        onChange={() => setFormData({ ...formData, worked_editorial_process: false })}
                                         className="w-4 h-4"
                                       />
                                       No
@@ -546,30 +388,30 @@ export default function UserProfile() {
 
                                 <div>
                                   <label className="block text-neutral-400 text-xs mb-2">
-                                    Are you willing to participate in the structured editorial process?
+                                    Are you willing to participate in a structured review and revision process?
                                   </label>
                                   <label className="flex items-center gap-2 text-neutral-300 text-sm">
                                     <input
                                       type="checkbox"
                                       required
-                                      checked={formData.willing_editorial_process === true}
-                                      onChange={e => setFormData({ ...formData, willing_editorial_process: e.target.checked ? true : false })}
+                                      checked={formData.willing_review_process === true}
+                                      onChange={e => setFormData({ ...formData, willing_review_process: e.target.checked ? true : null })}
                                       className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                                     />
-                                    Yes
+                                      Yes
                                   </label>
                                 </div>
 
                                 <div>
                                   <label className="block text-neutral-400 text-xs mb-2">
-                                    Do you acknowledge that submitted kalam may require revision before approval?
+                                    Do you acknowledge that publication decisions remain under editorial authority?
                                   </label>
                                   <label className="flex items-center gap-2 text-neutral-300 text-sm">
                                     <input
                                       type="checkbox"
                                       required
-                                      checked={formData.revision_acknowledged}
-                                      onChange={e => setFormData({ ...formData, revision_acknowledged: e.target.checked })}
+                                      checked={formData.acknowledge_editorial_control}
+                                      onChange={e => setFormData({ ...formData, acknowledge_editorial_control: e.target.checked })}
                                       className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded"
                                     />
                                     Yes
@@ -583,9 +425,9 @@ export default function UserProfile() {
 
                               <div className="bg-neutral-900/30 border border-neutral-800 rounded p-4 mb-4">
                                 <div className="space-y-2 text-neutral-300 text-xs leading-relaxed">
-                                  <p>All kalam submissions undergo institutional editorial review.</p>
-                                  <p>Writers do not independently authorize publication or production.</p>
-                                  <p>Origination does not equal production clearance or registry authorization.</p>
+                                  <p>Literary Contributors operate within an editorial review framework.</p>
+                                  <p>Submissions undergo structured evaluation and revision cycles.</p>
+                                  <p>All publications require formal editorial clearance and institutional alignment.</p>
                                 </div>
                               </div>
 
@@ -593,8 +435,8 @@ export default function UserProfile() {
                                 <input
                                   type="checkbox"
                                   required
-                                  checked={formData.institutional_acknowledged}
-                                  onChange={e => setFormData({ ...formData, institutional_acknowledged: e.target.checked })}
+                                  checked={formData.accept_framework}
+                                  onChange={e => setFormData({ ...formData, accept_framework: e.target.checked })}
                                   className="w-4 h-4 bg-neutral-900/50 border border-neutral-800 rounded mt-0.5 shrink-0"
                                 />
                                 <span>I acknowledge and accept the institutional editorial framework.</span>
@@ -605,36 +447,23 @@ export default function UserProfile() {
 
                         <div className="mt-8 flex justify-end gap-3">
                           <button
-                            // type="submit"
                             onClick={handleDeleteProfile}
-                            // disabled={!user.is_verified || !formData.institutional_acknowledged || !formData.revision_acknowledged}
                             className="px-8 py-2.5 text-amber-400 hover:bg-amber-500 hover:text-black border-amber-400 border font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {loading ?
-                              <Loader className='animate-spin' />
-                              :
-                              'Delete Profile'
-                            }
+                            {loading ? <Loader className='animate-spin' /> : 'Delete Profile'}
                           </button>
                           <button
-                            // type="submit"
-                            onClick={handleSubmit}
-                            // disabled={!user.is_verified || !formData.institutional_acknowledged || !formData.revision_acknowledged}
-                            className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={handleUpdateProfile}
+                            disabled={!formData.accept_framework || !formData.acknowledge_editorial_control}
+                            className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                           >
-                            {loading ?
-                              <Loader className='animate-spin' />
-                              :
-                              'Save Changes'
-                            }
+                            {loading && <Loader className="w-4 h-4 animate-spin" />}
+                            {loading ? 'Saving...' : 'Save Changes'}
                           </button>
-
-
                         </div>
                       </form>
                     )}
                   </div>
-
                 )}
 
                 {/* Notifications Tab */}
@@ -691,7 +520,6 @@ export default function UserProfile() {
                             )}
                             {!notification.read && (
                               <button
-                                // onClick={() => markNotificationAsRead(notification.id)}
                                 className="px-4 py-2 border border-neutral-700 text-neutral-300 font-semibold rounded hover:bg-neutral-800 transition-colors text-sm"
                               >
                                 Mark as Read

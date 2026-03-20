@@ -3,7 +3,10 @@ import axios from "axios";
 import { KalamUnderDraft } from "../user/writer/dashboard/page";
 import { VocalistProfileType } from "../types/vocalist.types";
 import { WriterFormData } from "../types/writer.types";
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+import { ProducerProfileType } from "../types/producer.types";
+import { LiteraryProfileType } from "../types/literary.types";
+import { StudioProfileType } from "../types/studio.types";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 axios.defaults.withCredentials = true;
 
 let accessToken: string | null = null;
@@ -136,8 +139,8 @@ export const updateKalam = (id: string, data: any) => {
 export const deleteKalam = (id: string) => {
     return api.delete(`${API_URL}/kalam/${id}`);
 }
-export const updateKalamStatus = (id: string, status: string, revision_notes:string | null) => {
-    return api.patch(`${API_URL}/kalam/update-status/${id}`, {status, revision_notes});
+export const updateKalamStatus = (id: string, status: string, revision_notes: string | null) => {
+    return api.patch(`${API_URL}/kalam/update-status/${id}`, { status, revision_notes });
 }
 // Vocalist
 export const createVocalistProfile = (form: VocalistProfileType) => {
@@ -186,4 +189,63 @@ export const deleteSada = (id: string) => {
 
 export const updateSadaStatus = (id: string, data: any) => {
     return api.patch(`${API_URL}/sada/update-status/${id}`, data)
+}
+
+// Producer
+export const createProducerProfile = (form: ProducerProfileType) => {
+    return api.post(`${API_URL}/producer/create`, form)
+}
+
+export const readProducerProfile = () => {
+    return api.get(`${API_URL}/producer/read`)
+}
+
+export const updateProducerProfile = (form: ProducerProfileType) => {
+    return api.patch(`${API_URL}/producer/update`, form)
+}
+
+export const updateProducerStatus = (id: string, status: string) => {
+    return api.patch(`${API_URL}/producer/update-status/${id}`, { status })
+}
+
+export const deleteProducerProfile = () => {
+    return api.delete(`${API_URL}/producer/delete`)
+}
+
+export const getAllProducers = () => {
+    return api.get(`${API_URL}/producer/all`)
+}
+
+// Literary Contributor
+export const createLiteraryProfile = (form: LiteraryProfileType) => {
+    return api.post(`${API_URL}/literary/create`, form)
+}
+
+export const readLiteraryProfile = () => {
+    return api.get(`${API_URL}/literary/read`)
+}
+
+export const updateLiteraryProfile = (form: LiteraryProfileType) => {
+    return api.patch(`${API_URL}/literary/update`, form)
+}
+
+export const deleteLiteraryProfile = () => {
+    return api.delete(`${API_URL}/literary/delete`)
+}
+
+// Studio Partner
+export const createStudioProfile = (form: StudioProfileType) => {
+    return api.post(`${API_URL}/studio/create`, form)
+}
+
+export const readStudioProfile = () => {
+    return api.get(`${API_URL}/studio/read`)
+}
+
+export const updateStudioProfile = (form: StudioProfileType) => {
+    return api.patch(`${API_URL}/studio/update`, form)
+}
+
+export const deleteStudioProfile = () => {
+    return api.delete(`${API_URL}/studio/delete`)
 }

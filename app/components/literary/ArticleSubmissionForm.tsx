@@ -1,7 +1,8 @@
+"use client";
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+// import { supabase } from '../../lib/supabase';
 import { Check, X, Loader } from 'lucide-react';
-import { sanitizeInput } from '../../lib/sanitization';
+import DOMPurify from "dompurify";
 
 export function ArticleSubmissionForm() {
   const [submitting, setSubmitting] = useState(false);
@@ -17,65 +18,7 @@ export function ArticleSubmissionForm() {
     tags: ''
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        alert('You must be logged in to submit an article');
-        setSubmitting(false);
-        return;
-      }
-
-      const slug = formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-
-      const tagsArray = formData.tags
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag.length > 0);
-
-      const { error } = await supabase
-        .from('literary_articles')
-        .insert([{
-          title: formData.title,
-          subtitle: formData.subtitle || null,
-          slug,
-          author_id: user.id,
-          category: formData.category,
-          content: formData.content,
-          excerpt: formData.excerpt,
-          reading_time_minutes: formData.reading_time_minutes,
-          tags: tagsArray,
-          publication_status: 'submitted'
-        }]);
-
-      if (error) throw error;
-
-      setSubmitted(true);
-      setFormData({
-        title: '',
-        subtitle: '',
-        category: 'reflective_essay',
-        content: '',
-        excerpt: '',
-        reading_time_minutes: 5,
-        tags: ''
-      });
-
-      setTimeout(() => setSubmitted(false), 5000);
-    } catch (error) {
-      console.error('Error submitting article:', error);
-      alert('Failed to submit article. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   if (submitted) {
     return (
@@ -94,7 +37,7 @@ export function ArticleSubmissionForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-neutral-900/30 border border-neutral-800 rounded-lg p-6 space-y-6">
+    <form className="bg-neutral-900/30 border border-neutral-800 rounded-lg p-6 space-y-6">
       <div>
         <label className="block text-sm font-medium text-neutral-300 mb-2">
           Title *
@@ -103,7 +46,7 @@ export function ArticleSubmissionForm() {
           type="text"
           required
           value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: sanitizeInput(e.target.value) })}
+          onChange={(e) => setFormData({ ...formData, title: DOMPurify.sanitize(e.target.value) })}
           className="form-input w-full px-4 py-2.5 bg-neutral-900/50 rounded-lg text-white"
           placeholder="Enter article title"
         />
@@ -116,7 +59,7 @@ export function ArticleSubmissionForm() {
         <input
           type="text"
           value={formData.subtitle}
-          onChange={(e) => setFormData({ ...formData, subtitle: sanitizeInput(e.target.value) })}
+          onChange={(e) => setFormData({ ...formData, subtitle: DOMPurify.sanitize(e.target.value) })}
           className="form-input w-full px-4 py-2.5 bg-neutral-900/50 rounded-lg text-white"
           placeholder="Enter subtitle"
         />
@@ -165,7 +108,7 @@ export function ArticleSubmissionForm() {
           required
           rows={3}
           value={formData.excerpt}
-          onChange={(e) => setFormData({ ...formData, excerpt: sanitizeInput(e.target.value) })}
+          onChange={(e) => setFormData({ ...formData, excerpt: DOMPurify.sanitize(e.target.value) })}
           className="form-input w-full px-4 py-2.5 bg-neutral-900/50 rounded-lg text-white"
           placeholder="Brief summary of the article (2-3 sentences)"
         />
@@ -182,7 +125,7 @@ export function ArticleSubmissionForm() {
           required
           rows={16}
           value={formData.content}
-          onChange={(e) => setFormData({ ...formData, content: sanitizeInput(e.target.value) })}
+          onChange={(e) => setFormData({ ...formData, content: DOMPurify.sanitize(e.target.value) })}
           className="form-input w-full px-4 py-2.5 bg-neutral-900/50 rounded-lg text-white font-mono text-sm"
           placeholder="Write your article here..."
         />
@@ -198,7 +141,7 @@ export function ArticleSubmissionForm() {
         <input
           type="text"
           value={formData.tags}
-          onChange={(e) => setFormData({ ...formData, tags: sanitizeInput(e.target.value) })}
+          onChange={(e) => setFormData({ ...formData, tags: DOMPurify.sanitize(e.target.value) })}
           className="form-input w-full px-4 py-2.5 bg-neutral-900/50 rounded-lg text-white"
           placeholder="sufism, spirituality, philosophy"
         />
