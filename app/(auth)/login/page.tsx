@@ -43,7 +43,7 @@ const Login = () => {
         setLoading(true);
         try {
             const res = await login(form.email, form.password);
-            
+
         } catch (err: any) {
 
             const message =
@@ -144,7 +144,7 @@ const Login = () => {
                                 onClick={(e) => handleLogin(e)}
                                 className="w-full cursor-pointer flex items-center justify-center bg-linear-to-r from-[#D4AF37] to-[#aa8829] text-[#1a2332] py-3 rounded-md font-semibold hover:shadow-lg hover:shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                             >
-                                {loading ? <Loader className='animate-spin' /> : 'Login'}
+                                {loading ? <Loader /> : 'Login'}
                             </button>
                             <button
                                 className="cursor-pointer w-full border flex items-center justify-center bg-linear-to-r border-[#D4AF37] text-[#D4AF37]! py-3 rounded-md font-semibold hover:shadow-lg hover:shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"

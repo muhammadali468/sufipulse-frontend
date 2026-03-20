@@ -4,7 +4,7 @@ import { VocalistSubmissionSuccessModal } from './VocalistSubmissionSuccessModal
 import * as api from "../../api/auth"
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
-import { Loader } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { VocalistProfileType } from '@/app/types/vocalist.types';
 import { useRouter } from 'next/navigation';
 
@@ -349,7 +349,7 @@ export function VocalistCredentialsForm() {
           className="cursor-pointer px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ?
-            <Loader className='animate-spin' />
+            <Loader />
             :
             'Submit Vocalist Profile'
           }

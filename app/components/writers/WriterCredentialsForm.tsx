@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import Link from 'next/link';
 import * as api from "../../api/auth"
 import { useRouter } from 'next/navigation';
-import { Loader } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { WriterFormData } from '@/app/types/writer.types';
 
 export function WriterCredentialsForm() {
@@ -391,7 +391,7 @@ export function WriterCredentialsForm() {
           className="cursor-pointer px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ?
-            <Loader className='animate-spin' />
+            <Loader />
             :
             'Submit Writer Profile'
           }

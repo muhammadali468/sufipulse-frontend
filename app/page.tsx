@@ -12,6 +12,7 @@ import { Layout } from './components/layout/Layout';
 import { useState, useEffect } from 'react';
 // import { supabase } from './lib/supabase';
 import Link from 'next/link';
+import Loader from './components/ui/Loader';
 
 interface FeaturedArticle {
   id: string;

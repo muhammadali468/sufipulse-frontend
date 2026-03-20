@@ -3,7 +3,7 @@ import { useState } from 'react';
 import DOMPurify from "dompurify";
 import * as api from "../../api/auth";
 import { useAuth } from '@/app/contexts/AuthContext';
-import { Loader } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { LiteraryProfileType } from '@/app/types/literary.types';
 import Link from 'next/link';
 
@@ -343,7 +343,7 @@ export function LiteraryContributorCredentialsForm() {
           disabled={loading || !formData.accept_framework || !formData.acknowledge_editorial_control || !user?.is_verified}
           className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          {loading ? <Loader className="w-4 h-4 animate-spin" /> : null}
+          {loading ? <Loader /> : null}
           {loading ? 'Submitting...' : 'Submit Literary Contributor Profile'}
         </button>
       </div>

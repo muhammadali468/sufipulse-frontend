@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Layout } from '../../components/layout/Layout';
-import { Lock, Loader } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { useRouter } from 'next/navigation';
 import * as api from "../../api/auth";
 import Link from 'next/link';
@@ -81,7 +82,7 @@ export default function ForgotPassword() {
                                 onClick={(e) => handleLogin(e)}
                                 className="w-full cursor-pointer flex items-center justify-center bg-linear-to-r from-[#D4AF37] to-[#aa8829] text-[#1a2332] py-3 rounded-md font-semibold hover:shadow-lg hover:shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                             >
-                                {loading ? <Loader className='animate-spin' /> : 'Send OTP'}
+                                {loading ? <Loader /> : 'Send OTP'}
                             </button>
                         </form>
 

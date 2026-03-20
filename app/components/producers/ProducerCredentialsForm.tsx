@@ -3,7 +3,7 @@ import { useState } from 'react';
 import DOMPurify from "dompurify";
 import { useAuth } from '../../contexts/AuthContext';
 import * as api from "../../api/auth";
-import { Loader } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import Link from 'next/link';
 import { ProducerProfileType } from '../../types/producer.types';
 
@@ -330,7 +330,7 @@ export function ProducerCredentialsForm() {
             disabled={!user?.is_verified || !formData.accept_framework || !formData.acknowledge_centralized_control}
             className="px-8 py-2.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-medium text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? <Loader className="animate-spin w-4 h-4" /> : 'Submit Producer Profile'}
+            {loading ? <Loader /> : 'Submit Producer Profile'}
           </button>
         ) : (
           <Link

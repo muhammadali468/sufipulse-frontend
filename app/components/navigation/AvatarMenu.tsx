@@ -1,13 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, LogOut, LayoutDashboard, FileText, UserCircle } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, FileText, UserCircle, NotebookPen, Mic, KeyboardMusic, PenTool, FolderDot } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import * as api from "../../api/auth"
 
 export function AvatarMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
+  const [userProfiles, setUserProfiles] = useState({
+    writer: false,
+    vocalist: false,
+    producer: false,
+    studio: false,
+    literaryCollaborator: false
+  })
 
   // Get user initials or default
   const getInitials = () => {
@@ -49,10 +57,37 @@ export function AvatarMenu() {
   const handleLinkClick = () => {
     setIsOpen(false);
   };
-  const handleLogout=()=>{
+  const handleLogout = () => {
     setIsOpen(false);
     logout();
   }
+  const loadWriterProfile = async () => {
+    try {
+      const res = await api.readWriterProfile();
+      setUserProfiles(prev => ({
+        ...prev,
+        writer: true
+      }))
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  const loadVocalistProfile = async () => {
+    try {
+      const res = await api.readVocalistProfile();
+      setUserProfiles(prev => ({
+        ...prev,
+        vocalist: true
+      }))
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+
+    loadVocalistProfile();
+    loadWriterProfile()
+  }, [])
 
   console.log(user)
 
@@ -91,7 +126,7 @@ export function AvatarMenu() {
                   <span>Dashboard</span>
                 </Link>
 
-                {!user.role.includes("admin") && (
+                {user.role.includes("admin") && (
                   <>
                     <Link
                       href="/user/dashboard"
@@ -114,6 +149,41 @@ export function AvatarMenu() {
                     </Link>
                   </>
                 )}
+                <Link
+                  className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
+                  onClick={handleLinkClick}
+                  href="/user/writer/dashboard">
+                  <NotebookPen size={18} />
+                  <span>Writer Dashboard</span>
+                </Link>
+                <Link
+                  className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
+                  onClick={handleLinkClick}
+                  href="/user/writer/dashboard">
+                  <Mic size={18} />
+                  <span>Vocalist Dashboard</span>
+                </Link>
+                <Link
+                  className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
+                  onClick={handleLinkClick}
+                  href="/user/producer/dashboard">
+                  <KeyboardMusic size={18} />
+                  <span>Producer Dashboard</span>
+                </Link>
+                <Link
+                  className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
+                  onClick={handleLinkClick}
+                  href="/user/studio/dashboard">
+                  <FolderDot size={18} />
+                  <span>Studio Dashboard</span>
+                </Link>
+                <Link
+                  className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
+                  onClick={handleLinkClick}
+                  href="/user/literary-contributor/dashboard">
+                  <PenTool size={18} />
+                  <span>Literary Contributor Dashboard</span>
+                </Link>
               </div>
 
               <div className="border-t border-[#1e2a3d] pt-2">
