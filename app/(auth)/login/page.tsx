@@ -21,12 +21,12 @@ const Login = () => {
     const { login, user } = useAuth();
     const router = useRouter()
     // const navigate = useNavigate();
-    // Role-aware redirect after successful login
+    // Role - aware redirect after successful login
     useEffect(() => {
         if (user) {
             router.push('/');
             if (user.role === "admin") {
-                router.push('/admin/dashboard');
+                router.push('/admin');
             }
         }
     }, [user]);

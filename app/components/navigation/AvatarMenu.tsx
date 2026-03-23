@@ -73,21 +73,26 @@ export function AvatarMenu() {
     }
   }
   const loadVocalistProfile = async () => {
-    try {
-      const res = await api.readVocalistProfile();
+    const res = await api.readVocalistProfile();
+    if (res.data.is_verfied) {
       setUserProfiles(prev => ({
         ...prev,
         vocalist: true
       }))
-    } catch (error) {
-      console.log(error);
     }
+    // try {
+    // } catch (error) {
+    //   console.log(error);
+    // } finally(){
+    //   console.log(res)
+    // }
   };
   useEffect(() => {
-
-    loadVocalistProfile();
-    loadWriterProfile()
-  }, [])
+    if (user) {
+      loadVocalistProfile();
+      loadWriterProfile();
+    }
+  }, [user]);
 
   console.log(user)
 
@@ -104,7 +109,7 @@ export function AvatarMenu() {
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-3 w-64 bg-[#0f1b2d]/95 backdrop-blur-md border border-[#1e2a3d] rounded-lg shadow-2xl shadow-black/50 py-2 z-50 animate-fade-in"
+          className="absolute w-max right-0 mt-3 w-64 bg-[#0f1b2d]/95 backdrop-blur-md border border-[#1e2a3d] rounded-lg shadow-2xl shadow-black/50 py-2 z-50 animate-fade-in"
           role="menu"
         >
           {user ? (
@@ -116,7 +121,7 @@ export function AvatarMenu() {
               </div>
 
               <div className="py-2">
-                <Link
+                {user.role == "" ? <Link
                   href={user.role.includes("admin") ? "/admin" : "/user/dashboard"}
                   onClick={handleLinkClick}
                   className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
@@ -124,7 +129,7 @@ export function AvatarMenu() {
                 >
                   <LayoutDashboard size={18} />
                   <span>Dashboard</span>
-                </Link>
+                </Link> : ""}
 
                 {user.role.includes("admin") && (
                   <>
@@ -149,41 +154,41 @@ export function AvatarMenu() {
                     </Link>
                   </>
                 )}
-                <Link
+                {userProfiles.writer && <Link
                   className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
                   onClick={handleLinkClick}
                   href="/user/writer/dashboard">
                   <NotebookPen size={18} />
                   <span>Writer Dashboard</span>
-                </Link>
-                <Link
+                </Link>}
+                {userProfiles.vocalist && <Link
                   className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
                   onClick={handleLinkClick}
                   href="/user/writer/dashboard">
                   <Mic size={18} />
                   <span>Vocalist Dashboard</span>
-                </Link>
-                <Link
+                </Link>}
+                {userProfiles.producer && <Link
                   className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
                   onClick={handleLinkClick}
                   href="/user/producer/dashboard">
                   <KeyboardMusic size={18} />
                   <span>Producer Dashboard</span>
-                </Link>
-                <Link
+                </Link>}
+                {userProfiles.studio && <Link
                   className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
                   onClick={handleLinkClick}
                   href="/user/studio/dashboard">
                   <FolderDot size={18} />
                   <span>Studio Dashboard</span>
-                </Link>
-                <Link
+                </Link>}
+                {userProfiles.literaryCollaborator && <Link
                   className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-[#1e2a3d] hover:text-[#C8A75E] transition-colors"
                   onClick={handleLinkClick}
                   href="/user/literary-contributor/dashboard">
                   <PenTool size={18} />
                   <span>Literary Contributor Dashboard</span>
-                </Link>
+                </Link>}
               </div>
 
               <div className="border-t border-[#1e2a3d] pt-2">

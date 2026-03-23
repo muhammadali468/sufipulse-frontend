@@ -58,7 +58,7 @@ api.interceptors.response.use((res) =>
             } catch (refreshErr) {
                 console.error("Refresh token expired", refreshErr);
                 localStorage.removeItem("accessToken");
-                if (typeof window !== "undefined") {
+                if (typeof window !== "undefined" && window.location.pathname !== "/login") {
                     window.location.href = "/login";
                 }
                 return Promise.reject(refreshErr);
