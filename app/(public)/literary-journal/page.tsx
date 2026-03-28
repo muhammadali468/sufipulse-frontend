@@ -1,28 +1,11 @@
 "use client"
 import { useState, useEffect } from 'react';
-// import { Link } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { Section } from '../../components/layout/Section';
 import { BookOpen, Calendar, Clock, Tag, Search, Filter, Eye, TrendingUp, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-// import { supabase } from '../../lib/supabase';
-
-interface Article {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    slug: string;
-    category: string;
-    excerpt: string;
-    reading_time_minutes: number;
-    featured: boolean;
-    published_at: string;
-    tags: string[];
-    view_count: number;
-    author_id: string;
-    author_name?: string;
-}
+import { literaryArticles, Article } from '../../data/literary-articles';
 
 export default function LiteraryJournal() {
     const [articles, setArticles] = useState<Article[]>([]);
@@ -42,45 +25,39 @@ export default function LiteraryJournal() {
         { value: 'institutional_guidance', label: 'Institutional Guidance' },
     ];
 
-    //   useEffect(() => {
-    //     fetchArticles();
-    //     fetchStats();
-    //   }, [selectedCategory, searchQuery]);
+    useEffect(() => {
+        setLoading(true);
+        let filtered = literaryArticles;
 
-    //   const fetchArticles = async () => {
-    //     try {
-    //       setLoading(true);
+        if (selectedCategory !== 'all') {
+            filtered = filtered.filter(a => a.category === selectedCategory);
+        }
 
-    //       let query = supabase
-    //         .from('literary_articles')
-    //         .select('*')
-    //         .eq('publication_status', 'published')
-    //         .order('published_at', { ascending: false });
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            filtered = filtered.filter(a => 
+                a.title.toLowerCase().includes(q) || 
+                a.excerpt.toLowerCase().includes(q)
+            );
+        }
 
-    //       if (selectedCategory !== 'all') {
-    //         query = query.eq('category', selectedCategory);
-    //       }
+        const featured = filtered.filter(a => a.featured).slice(0, 3);
+        const regular = filtered.filter(a => !a.featured);
 
-    //       if (searchQuery) {
-    //         query = query.or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%`);
-    //       }
+        setFeaturedArticles(featured);
+        setArticles(regular);
+        setLoading(false);
+    }, [selectedCategory, searchQuery]);
 
-    //       const { data, error } = await query;
-
-    //       if (error) throw error;
-
-    //       const articlesData = data || [];
-    //       const featured = articlesData.filter(a => a.featured).slice(0, 3);
-    //       const regular = articlesData.filter(a => !a.featured);
-
-    //       setFeaturedArticles(featured);
-    //       setArticles(regular);
-    //     } catch (error) {
-    //       console.error('Error fetching articles:', error);
-    //     } finally {
-    //       setLoading(false);
-    //     }
-    //   };
+    useEffect(() => {
+        const totalViews = literaryArticles.reduce((sum, article) => sum + (article.view_count || 0), 0);
+        const uniqueCategories = new Set(literaryArticles.map(a => a.category)).size;
+        setStats({
+            totalArticles: literaryArticles.length,
+            totalViews,
+            categories: uniqueCategories
+        });
+    }, []);
 
     const formatCategory = (category: string) => {
         return category
@@ -96,29 +73,6 @@ export default function LiteraryJournal() {
             day: 'numeric'
         });
     };
-
-    //   const fetchStats = async () => {
-    //     try {
-    //       const { data, error } = await supabase
-    //         .from('literary_articles')
-    //         .select('view_count, category')
-    //         .eq('publication_status', 'published');
-
-    //       if (error) throw error;
-
-    //       if (data) {
-    //         const totalViews = data.reduce((sum, article) => sum + (article.view_count || 0), 0);
-    //         const uniqueCategories = new Set(data.map(a => a.category)).size;
-    //         setStats({
-    //           totalArticles: data.length,
-    //           totalViews,
-    //           categories: uniqueCategories
-    //         });
-    //       }
-    //     } catch (error) {
-    //       console.error('Error fetching stats:', error);
-    //     }
-    //   };
 
     return (
         <Layout>
@@ -277,11 +231,11 @@ function ArticleCard({ article, featured }: ArticleCardProps) {
 
     return (
         <Link
-            href={`/literary-journal/1`}
+            href={`/literary-journal/${article.slug}`}
             className={`group block bg-gradient-to-b from-neutral-900/40 to-neutral-900/20 border border-neutral-800 rounded-xl p-6 hover:border-amber-400/40 hover:bg-neutral-900/60 transition-all hover:shadow-xl hover:shadow-amber-400/10 hover:-translate-y-2 ${featured ? 'ring-2 ring-amber-400/20 bg-gradient-to-br from-amber-400/5 to-transparent' : ''
                 }`}
         >
-            <div className="relative">
+            <div className="relative flex flex-col h-full">
                 {featured && (
                     <div className="mb-4">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-400/20 to-amber-400/10 border border-amber-400/40 rounded-full text-amber-400 text-xs font-semibold uppercase tracking-wider">
@@ -307,7 +261,7 @@ function ArticleCard({ article, featured }: ArticleCardProps) {
                     </p>
                 )}
 
-                <p className="text-neutral-300 text-sm leading-relaxed mb-5 line-clamp-3">
+                <p className="text-neutral-300 text-sm leading-relaxed mb-5 line-clamp-3 flex-grow">
                     {article.excerpt}
                 </p>
 

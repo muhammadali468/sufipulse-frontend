@@ -1,82 +1,32 @@
 "use client"
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Layout } from '../../components/layout/Layout';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { Section } from '../../components/layout/Section';
+import { useParams } from 'next/navigation';
+import { Layout } from '../../../components/layout/Layout';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import { Section } from '../../../components/layout/Section';
 import { Calendar, Clock, Tag, User, ArrowLeft, Eye, BookOpen, Share2 } from 'lucide-react';
-
-interface Article {
-  id: string;
-  title: string;
-  subtitle: string | null;
-  slug: string;
-  category: string;
-  content: string;
-  excerpt: string;
-  reading_time_minutes: number;
-  featured: boolean;
-  published_at: string;
-  tags: string[];
-  view_count: number;
-  author_id: string;
-  author_name?: string;
-}
+import { literaryArticles, Article } from '../../../data/literary-articles';
 
 export default function LiteraryArticle() {
+  const params = useParams();
+  const slug = params?.slug as string;
   const loading = false;
 
-  const article: Article = {
-    id: "1",
-    title: "The Silent Symphony: finding God in the pause",
-    subtitle: "An exploration of silence as a spiritual medium in modern Sufi practice",
-    slug: "silent-symphony",
-    category: "reflective_essay",
-    content: "Silence is not the absence of sound, but rather the canvas upon which the Divine speaks. In today's chaotic landscape, finding true silence is akin to discovering water in a desert...\n\nWhen we pause to observe the spaces between our thoughts, we encounter the vastness of our own being. This is where reflection transforms into revelation. Historically, Sufis have considered seclusion (khalwa) as a necessary retreat, not to escape the world, but to return to it with a clarified heart.\n\nTake the breath, for example. The moment between inhalation and exhalation is a profound pause. In that brief suspension, one can find a stillness that transcends time, and a gentle reminder of the eternal presence of the Creator.",
-    excerpt: "Silence is not the absence of sound, but rather the canvas upon which the Divine speaks. In today's chaotic landscape, finding true silence...",
-    reading_time_minutes: 5,
-    featured: true,
-    published_at: "2025-08-16T10:00:00Z",
-    tags: ["Silence", "Meditation", "Modern Spirituality"],
-    view_count: 3450,
-    author_id: "a1",
-    author_name: "Yusuf Al-Amin"
-  };
+  const article = literaryArticles.find(a => a.slug === slug);
+  
+  // Find 3 related articles (same category or random, excluding current)
+  const relatedArticles = article 
+    ? literaryArticles
+        .filter(a => a.id !== article.id && a.category === article.category)
+        .slice(0, 3)
+    : [];
 
-  const relatedArticles: Article[] = [
-    {
-      id: "2",
-      title: "The Architecture of the Heart",
-      subtitle: "Building inner sanctuaries",
-      slug: "architecture-of-the-heart",
-      category: "reflective_essay",
-      content: "...",
-      excerpt: "Building an inner sanctuary requires patience and a deep understanding of our own foundations...",
-      reading_time_minutes: 4,
-      featured: false,
-      published_at: "2025-07-20T10:00:00Z",
-      tags: ["Heart", "Growth"],
-      view_count: 1205,
-      author_id: "a2",
-      author_name: "Zainab Rumi"
-    },
-    {
-      id: "3",
-      title: "Navigating the Ego",
-      subtitle: "Practical steps in daily life",
-      slug: "navigating-ego",
-      category: "reflective_essay",
-      content: "...",
-      excerpt: "The ego is not a monster to be slain, but a companion to be guided. Here are some reflections on practical ways...",
-      reading_time_minutes: 6,
-      featured: false,
-      published_at: "2025-06-15T10:00:00Z",
-      tags: ["Ego", "Practice"],
-      view_count: 2340,
-      author_id: "a1",
-      author_name: "Yusuf Al-Amin"
-    }
-  ];
+  // if not enough related by category, just add some
+  if (relatedArticles.length < 3 && article) {
+    const more = literaryArticles.filter(a => a.id !== article.id && !relatedArticles.find(r => r.id === a.id)).slice(0, 3 - relatedArticles.length);
+    relatedArticles.push(...more);
+  }
 
   const formatCategory = (category: string) => {
     return category

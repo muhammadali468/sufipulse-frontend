@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 // import { supabase } from './lib/supabase';
 import Link from 'next/link';
 import Loader from './components/ui/Loader';
+import { literaryArticles } from './data/literary-articles';
 
 interface FeaturedArticle {
   id: string;
@@ -56,77 +57,34 @@ export default function Home() {
   //   setCurrentSlide((prev) => (prev - 1 + featuredReleases.length) % featuredReleases.length);
   // };
 
-  // useEffect(() => {
-  //   fetchFeaturedArticles();
-  //   fetchLatestPublications();
-  // }, []);
+  useEffect(() => {
+    // Featured articles
+    const featured = literaryArticles.filter(a => a.featured).slice(0, 3).map(a => ({
+      id: a.id,
+      title: a.title,
+      slug: a.slug,
+      excerpt: a.excerpt,
+      category: a.category,
+      author_name: a.author_name || 'Ahl-e-Tahreer Archive',
+      reading_time_minutes: a.reading_time_minutes,
+      published_at: a.published_at
+    }));
+    setFeaturedArticles(featured);
+    setArticlesLoading(false);
 
-  // const fetchFeaturedArticles = async () => {
-  //   try {
-  //     const { data, error } = await supabase
-  //       .from('literary_articles')
-  //       .select('id, title, slug, excerpt, category, author_name, reading_time_minutes, published_at')
-  //       .eq('publication_status', 'published')
-  //       .eq('featured', true)
-  //       .order('published_at', { ascending: false })
-  //       .limit(3);
+    // Latest publications
+    const articlesAsPubs: Publication[] = literaryArticles.slice(0, 3).map(a => ({
+      id: a.id,
+      type: 'literary' as const,
+      title: a.title,
+      slug: a.slug,
+      published_at: a.published_at,
+      excerpt: a.excerpt
+    }));
 
-  //     if (error) throw error;
-  //     setFeaturedArticles(data || []);
-  //   } catch (error) {
-  //     console.error('Error fetching featured articles:', error);
-  //   } finally {
-  //     setArticlesLoading(false);
-  //   }
-  // };
-
-  // const fetchLatestPublications = async () => {
-  //   try {
-  //     const { data: musicData } = await supabase
-  //       .from('releases')
-  //       .select('id, release_title, slug, release_date, description, artwork_url, youtube_video_id')
-  //       .eq('publication_gate', 'public')
-  //       .order('release_date', { ascending: false })
-  //       .limit(2);
-
-  //     const { data: articleData } = await supabase
-  //       .from('literary_articles')
-  //       .select('id, title, slug, published_at, excerpt')
-  //       .eq('publication_status', 'published')
-  //       .order('published_at', { ascending: false })
-  //       .limit(1);
-
-  //     const music: Publication[] = (musicData || []).map(r => ({
-  //       id: r.id,
-  //       type: 'music' as const,
-  //       title: r.release_title,
-  //       slug: r.slug,
-  //       published_at: r.release_date,
-  //       description: r.description,
-  //       artwork_url: r.artwork_url,
-  //       youtube_video_id: r.youtube_video_id
-  //     }));
-
-  //     const articles: Publication[] = (articleData || []).map(a => ({
-  //       id: a.id,
-  //       type: 'literary' as const,
-  //       title: a.title,
-  //       slug: a.slug,
-  //       published_at: a.published_at,
-  //       excerpt: a.excerpt
-  //     }));
-
-  //     const combined = [...music, ...articles].sort((a, b) =>
-  //       new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
-  //     ).slice(0, 3);
-
-  //     setLatestPublications(combined);
-  //   } catch (error) {
-  //     console.error('Error fetching latest publications:', error);
-  //   } finally {
-  //     setPubsLoading(false);
-  //   }
-  // };
+    setLatestPublications(articlesAsPubs);
+    setPubsLoading(false);
+  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -583,12 +541,10 @@ export default function Home() {
                   >
                     <Card hoverable>
                       <div className="relative">
-                        <div className="aspect-[4/3] w-full mb-4 rounded overflow-hidden border border-[var(--color-text-tertiary)]/20 bg-gradient-to-br from-[var(--color-midnight)] to-[var(--color-slate)]">
-                          <img
-                            src="/image.png"
-                            alt={article.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[var(--transition-base)]"
-                          />
+                        <div className="aspect-[4/3] w-full mb-4 rounded overflow-hidden border border-[var(--color-text-tertiary)]/20 bg-gradient-to-br from-[var(--color-midnight)] to-[var(--color-slate)] flex items-center justify-center group-hover:border-[var(--color-gold)]/40 transition-colors">
+                          <span className="text-4xl md:text-5xl font-serif font-light text-[var(--color-gold)]/40 group-hover:text-[var(--color-gold)]/60 transition-colors group-hover:scale-110 duration-500">
+                            SP
+                          </span>
                         </div>
 
                         <div className="mb-2">
