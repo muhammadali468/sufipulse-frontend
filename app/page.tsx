@@ -49,41 +49,91 @@ export default function Home() {
   const [latestPublications, setLatestPublications] = useState<Publication[]>([]);
   const [pubsLoading, setPubsLoading] = useState(true);
 
-  // const nextSlide = () => {
-  //   setCurrentSlide((prev) => (prev + 1) % featuredReleases.length);
-  // };
+  const featuredReleases = latestPublications.filter(p => p.type === 'music');
 
-  // const prevSlide = () => {
-  //   setCurrentSlide((prev) => (prev - 1 + featuredReleases.length) % featuredReleases.length);
-  // };
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % featuredReleases.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + featuredReleases.length) % featuredReleases.length);
+  };
 
   useEffect(() => {
     // Featured articles
     const featured = literaryArticles.filter(a => a.featured).slice(0, 3).map(a => ({
-      id: a.id,
-      title: a.title,
-      slug: a.slug,
-      excerpt: a.excerpt,
-      category: a.category,
-      author_name: a.author_name || 'Ahl-e-Tahreer Archive',
-      reading_time_minutes: a.reading_time_minutes,
-      published_at: a.published_at
+      ...a,
+      author_name: a.author_name || 'Ahl-e-Tahreer Archive'
     }));
-    setFeaturedArticles(featured);
+    setFeaturedArticles(featured as any);
     setArticlesLoading(false);
 
     // Latest publications
-    const articlesAsPubs: Publication[] = literaryArticles.slice(0, 3).map(a => ({
-      id: a.id,
-      type: 'literary' as const,
-      title: a.title,
-      slug: a.slug,
-      published_at: a.published_at,
-      excerpt: a.excerpt
-    }));
+    const fetchLatestPublications = async () => {
+      try {
+        const YOUTUBE_API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || 'AIzaSyCw34bUCxl_8S5R8I-380YyFOLDqpWL-R4';
+        const CHANNEL_ID = 'UCraDr3i5A3k0j7typ6tOOsQ';
 
-    setLatestPublications(articlesAsPubs);
-    setPubsLoading(false);
+        const searchRes = await fetch(
+          `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=2&order=date&type=video&key=${YOUTUBE_API_KEY}`
+        );
+        const searchData = await searchRes.json();
+        
+        const music: Publication[] = [];
+        if (searchData.items && searchData.items.length > 0) {
+          const videoIds = searchData.items.map((item: any) => item.id.videoId).join(',');
+          const videosRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`
+          );
+          const videosData = await videosRes.json();
+
+          (videosData.items || []).forEach((video: any) => {
+             music.push({
+                id: video.id,
+                type: 'music',
+                title: video.snippet.title,
+                slug: video.id,
+                published_at: video.snippet.publishedAt,
+                description: video.snippet.description,
+                artwork_url: video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high?.url,
+                youtube_video_id: video.id
+             });
+          });
+        }
+
+        const articlesAsPubs: Publication[] = literaryArticles.slice(0, 2).map(a => ({
+          id: a.id,
+          type: 'literary' as const,
+          title: a.title,
+          slug: a.slug,
+          published_at: a.published_at,
+          excerpt: a.excerpt
+        }));
+
+        // Prioritize: Latest Video first, then latest articles
+        const combined = [...music, ...articlesAsPubs].sort((a, b) => {
+          // If one is music and one is literary, put music first for the most recent check if close in date
+          return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+        }).slice(0, 3);
+
+        setLatestPublications(combined);
+      } catch (err) {
+        console.error(err);
+        const articlesAsPubs: Publication[] = literaryArticles.slice(0, 3).map(a => ({
+          id: a.id,
+          type: 'literary' as const,
+          title: a.title,
+          slug: a.slug,
+          published_at: a.published_at,
+          excerpt: a.excerpt
+        }));
+        setLatestPublications(articlesAsPubs);
+      } finally {
+        setPubsLoading(false);
+      }
+    };
+
+    fetchLatestPublications();
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -404,7 +454,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* {loading ? (
+          {pubsLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-[var(--color-text-secondary)]">Loading featured releases...</div>
             </div>
@@ -420,23 +470,23 @@ export default function Home() {
               <div className="relative max-w-4xl mx-auto">
                 {featuredReleases.length > 0 && (
                   <Link
-                    href={`/release/${featuredReleases[currentSlide].slug}`}
+                    href={`/release-detail/${featuredReleases[currentSlide]?.youtube_video_id || featuredReleases[currentSlide]?.slug}`}
                     className="group block"
                   >
                     <div className="relative">
-                      {featuredReleases[currentSlide].youtube_video_id ? (
+                      {featuredReleases[currentSlide]?.youtube_video_id || featuredReleases[currentSlide]?.slug ? (
                         <div className="relative w-full overflow-hidden rounded-lg shadow-2xl" style={{ aspectRatio: '16/9' }}>
                           <img
                             src={
-                              featuredReleases[currentSlide].thumbnail_url ||
-                              `https://i.ytimg.com/vi/${featuredReleases[currentSlide].youtube_video_id}/maxresdefault.jpg`
+                              featuredReleases[currentSlide]?.artwork_url ||
+                              `https://i.ytimg.com/vi/${featuredReleases[currentSlide]?.youtube_video_id}/maxresdefault.jpg`
                             }
-                            alt={featuredReleases[currentSlide].release_title}
+                            alt={featuredReleases[currentSlide]?.title}
                             className="w-full h-full object-cover bg-black group-hover:scale-[1.02] transition-transform duration-[var(--transition-base)]"
                             loading="lazy"
                             onError={(e) => {
                               const target = e.currentTarget;
-                              const videoId = featuredReleases[currentSlide].youtube_video_id;
+                              const videoId = featuredReleases[currentSlide]?.youtube_video_id;
                               if (videoId) {
                                 if (target.src.includes('maxresdefault')) {
                                   target.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
@@ -501,7 +551,7 @@ export default function Home() {
                 </Link>
               </div>
             </>
-          )} */}
+          )}
         </PageContainer>
       </Section>
 
@@ -709,12 +759,8 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {latestPublications.map((pub) => (
-                <Link
-                  key={pub.id}
-                  href={pub.type === 'music' ? `/release/${pub.slug}` : `/literary-journal/${pub.slug}`}
-                  className="group block"
-                >
+              {latestPublications.map((pub) => {
+                const cardContent = (
                   <Card hoverable>
                     {pub.type === 'music' && (pub.artwork_url || pub.youtube_video_id) ? (
                       <div className="aspect-square w-full overflow-hidden rounded mb-4">
@@ -756,8 +802,30 @@ export default function Home() {
                       <span>{formatDate(pub.published_at)}</span>
                     </div>
                   </Card>
-                </Link>
-              ))}
+                );
+
+                if (pub.type === 'music') {
+                  return (
+                    <Link
+                      key={pub.id}
+                      href={`/release-detail/${pub.youtube_video_id}`}
+                      className="group block"
+                    >
+                      {cardContent}
+                    </Link>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={pub.id}
+                    href={`/literary-journal/${pub.slug}`}
+                    className="group block"
+                  >
+                    {cardContent}
+                  </Link>
+                );
+              })}
             </div>
 
             <div className="text-center mt-8">

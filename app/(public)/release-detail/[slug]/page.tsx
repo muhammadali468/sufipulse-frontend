@@ -1,12 +1,12 @@
 "use client"
-// import { useParams, Link } from 'react-router-dom';
-import { useState } from 'react';
-import { Layout } from '../../components/layout/Layout';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { Badge } from '../../components/primitives/Badge';
+import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { Layout } from '../../../components/layout/Layout';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import { Badge } from '../../../components/primitives/Badge';
 import { Music, Lock, Calendar, Hash, Eye, ThumbsUp, MessageCircle, Clock, Share2, Copy, Facebook, Edit, FileText, Subtitles, Play, ChevronDown, X, Twitter, MessageSquare, Check, Mic, Users, PlayCircle } from 'lucide-react';
-// import { useRelease } from '../../hooks/useRelease';
-// import { formatDuration } from '../../services/youtubeSync';
+// import { useRelease } from '../../../hooks/useRelease';
+// import { formatDuration } from '../../../services/youtubeSync';
 import Link from 'next/link';
 
 const LANGUAGE_OPTIONS = [
@@ -30,7 +30,8 @@ const LANGUAGE_OPTIONS = [
 ] as const;
 
 export function Release() {
-    //   const { slug } = useParams<{ slug: string }>();
+    const params = useParams();
+    const slug = params?.slug as string;
     //   const { release, loading, error } = useRelease(slug || '');
     const [activeTab, setActiveTab] = useState<'overview' | 'subtitles' | 'lyrics' | 'production' | 'adopt' | 'credits'>('credits');
     const [showCopyModal, setShowCopyModal] = useState(false);
@@ -39,54 +40,69 @@ export function Release() {
     const [selectedSubtitleLanguage, setSelectedSubtitleLanguage] = useState<string>('');
     const [selectedLyricsLanguage, setSelectedLyricsLanguage] = useState<string>('');
     const [videoLoaded, setVideoLoaded] = useState(false);
-    const loading = false
-    const error = ""
-    const release: any = {
-        id: "1",
-        release_title: "Tajdar-e-Haram",
-        release_date: "2025-08-15",
-        description: `Language: Urdu◆Theme: Devotion◆Produced under SufiPulse Originals\n\nThis beautiful rendition brings forth the classical essence of a timeless Qawwali, weaving traditional instrumentation with modern acoustic clarity. It reflects a journey of spiritual longing and reverence.\n\n00:00 - Introduction (Harmonium & Tabla)\n01:15 - First Verse\n03:30 - Chorus\n04:45 - Instrumental Bridge\n06:20 - Final Crescendo\n\n#SufiPulse #Qawwali #Devotional`,
-        source: "native",
-        duration_seconds: 450,
-        views: 120500,
-        likes: 15400,
-        youtube_video_id: "0WspS8F4X0U",
-        slug: "tajdar-e-haram-2025",
-        subtitles_available: true,
-        subtitle_languages: ["english", "urdu"],
-        lyrics: {
-            english: "O King of the Holy Sanctuary...\nYour vision is the cure for my ailing heart.\nLook towards me once, O Beloved of God!\n\nWhen will my eyes behold your radiant face?\nThe entire world seeks your shelter.",
-            urdu: "تاجدارِ حرم، ہو نگاہِ کرم\nہم غریبوں کے دن بھی سنور جائیں گے\n\nحامیِ بے کساں، کیا کہے گا جہاں\nآپ کے در سے خالی اگر جائیں گے"
-        },
-        credits: [
-            { id: "101", display_name: "Saqib Raza", credit_type: "writer" },
-            { id: "102", display_name: "Atif Aslam", credit_type: "vocalist" },
-            { id: "103", display_name: "A.R. Rahman", credit_type: "producer" },
-            { id: "104", display_name: "Resul Pookutty", credit_type: "engineer" },
-        ],
-        lead_vocalists: ["Atif Aslam"],
-        chorus_vocalists: ["Sabri Brothers Ensemble", "Qawwali Group of Lahore"],
-        production_credits: {
-            studio_name: "Sound of Soul Studios",
-            studio_description: "A premier facility dedicated to preserving classical acoustics, equipped with vintage analog gear.",
-            lead_engineer: "Resul Pookutty",
-            engineering_crew: [
-                { name: "Suresh", role: "Mixing Engineer" },
-                { name: "John Davis", role: "Mastering Engineer" }
-            ],
-            music_director: "A.R. Rahman",
-            instrumentalists: [
-                { name: "Ustad Tari Khan", instrument: "Tabla" },
-                { name: "Farhan Ali", instrument: "Harmonium" }
-            ],
-            creative_direction_by: "Asim Raza"
-        },
-        spotify_url: "https://open.spotify.com/track/placeholder",
-        apple_music_url: "https://music.apple.com/us/album/placeholder",
-        royalty_split_percentage: 15,
-        royalty_agreements: [1, 2, 3],
-        revenue_records: [1, 2, 3, 4, 5]
-    };
+    const [release, setRelease] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!slug) return;
+
+        const fetchVideoDetails = async () => {
+            try {
+                const YOUTUBE_API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || 'AIzaSyCw34bUCxl_8S5R8I-380YyFOLDqpWL-R4';
+                const videoRes = await fetch(
+                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${slug}&key=${YOUTUBE_API_KEY}`
+                );
+                const data = await videoRes.json();
+
+                if (!data.items || data.items.length === 0) {
+                    setError("Video not found on SufiTube.");
+                    setLoading(false);
+                    return;
+                }
+
+                const v = data.items[0];
+
+                const match = v.contentDetails.duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+                let h = 0, m = 0, s = 0;
+                if (match) {
+                    h = parseInt(match[1]) || 0;
+                    m = parseInt(match[2]) || 0;
+                    s = parseInt(match[3]) || 0;
+                }
+                const totalSeconds = h * 3600 + m * 60 + s;
+
+                setRelease({
+                    id: v.id,
+                    release_title: v.snippet.title,
+                    release_date: v.snippet.publishedAt,
+                    description: v.snippet.description,
+                    source: "youtube_legacy",
+                    duration_seconds: totalSeconds,
+                    views: parseInt(v.statistics.viewCount || '0'),
+                    likes: parseInt(v.statistics.likeCount || '0'),
+                    youtube_video_id: v.id,
+                    slug: v.id,
+                    subtitles_available: false,
+                    subtitle_languages: [],
+                    lyrics: {},
+                    credits: [],
+                    lead_vocalists: [],
+                    chorus_vocalists: [],
+                    production_credits: {},
+                    spotify_url: "",
+                    apple_music_url: ""
+                });
+            } catch (err: any) {
+                console.error("Error fetching release:", err);
+                setError(err.message || "Failed to load release details");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchVideoDetails();
+    }, [slug]);
     if (loading) {
         return (
             <Layout>
@@ -121,6 +137,16 @@ export function Release() {
 
     const formatCurrency = (cents: number) => {
         return (cents / 100).toFixed(2);
+    };
+
+    const formatDuration = (totalSeconds: number) => {
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        if (h > 0) {
+            return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+        return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
     const formatDescription = (text: string) => {
@@ -250,7 +276,7 @@ export function Release() {
                                         <span className="text-neutral-700">•</span>
                                         <div className="flex items-center gap-2">
                                             <Clock className="w-4 h-4" />
-                                            {/* <span>{formatDuration(release.duration_seconds)}</span> */}
+                                            <span>{formatDuration(release.duration_seconds)}</span>
                                         </div>
                                     </>
                                 )}
@@ -310,7 +336,7 @@ export function Release() {
                                             </div>
                                             {release.duration_seconds && (
                                                 <div className="absolute bottom-4 right-4 bg-black/90 backdrop-blur-sm px-3 py-1.5 rounded text-sm text-white font-medium">
-                                                    {/* {formatDuration(release.duration_seconds)} */}
+                                                    {formatDuration(release.duration_seconds)}
                                                 </div>
                                             )}
                                         </>
@@ -320,7 +346,7 @@ export function Release() {
                                             <iframe
                                                 width="100%"
                                                 height="100%"
-                                                src={`https://www.youtube.com/embed/${release.youtube_video_id || release.youtube_url?.split('v=')[1]?.split('&')[0]}?rel=0&modestbranding=1&autoplay=1`}
+                                                src={`https://www.youtube.com/embed/${release.youtube_video_id || slug}?rel=0&modestbranding=1&autoplay=1&mute=1`}
                                                 title={release.release_title}
                                                 frameBorder="0"
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -434,7 +460,7 @@ export function Release() {
                                         )}
                                     </button>
                                 )}
-                                {getAvailableLanguages().length > 0 && (
+                                {/* {getAvailableLanguages().length > 0 && (
                                     <button
                                         onClick={() => setActiveTab('lyrics')}
                                         className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'lyrics'
@@ -450,7 +476,22 @@ export function Release() {
                                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
                                         )}
                                     </button>
-                                )}
+                                )} */}
+                                <button
+                                    onClick={() => setActiveTab('lyrics')}
+                                    className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'lyrics'
+                                        ? 'text-neutral-100'
+                                        : 'text-neutral-500 hover:text-neutral-300'
+                                        }`}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <FileText className="w-4 h-4" />
+                                        Lyrics
+                                    </span>
+                                    {activeTab === 'lyrics' && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
+                                    )}
+                                </button>
                                 <button
                                     onClick={() => setActiveTab('overview')}
                                     className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'overview'
@@ -895,6 +936,44 @@ export function Release() {
                         )}
 
                         {/* Lyrics Tab */}
+                        {/* {activeTab === 'lyrics' && getAvailableLanguages().length > 0 && (
+                            <div className="pt-8">
+                                <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-8">
+                                    <h3 className="text-xl font-medium text-neutral-100 mb-6">Select Lyrics Language</h3>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-8">
+                                        {getAvailableLanguages().map((lang) => {
+                                            const langLabel = LANGUAGE_OPTIONS.find(opt => opt.key === lang)?.label || lang.toUpperCase();
+                                            return (
+                                                <button
+                                                    key={lang}
+                                                    onClick={() => setSelectedLyricsLanguage(lang)}
+                                                    className={`px-5 py-3 rounded-lg border font-medium transition-all ${selectedLyricsLanguage === lang
+                                                        ? 'bg-neutral-700 border-neutral-600 text-white shadow-lg'
+                                                        : 'bg-neutral-800 border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:border-neutral-600'
+                                                        }`}
+                                                >
+                                                    {langLabel}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {selectedLyricsLanguage && release.lyrics?.[selectedLyricsLanguage as keyof typeof release.lyrics] && (
+                                        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-8 mt-6">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <FileText className="w-5 h-5 text-neutral-400" />
+                                                <h4 className="text-lg font-medium text-neutral-100">
+                                                    {LANGUAGE_OPTIONS.find(opt => opt.key === selectedLyricsLanguage)?.label || selectedLyricsLanguage.toUpperCase()} Lyrics
+                                                </h4>
+                                            </div>
+                                            <div className="text-neutral-300 whitespace-pre-line leading-relaxed text-base font-serif">
+                                                {release.lyrics[selectedLyricsLanguage as keyof typeof release.lyrics]}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )} */}
+
                         {activeTab === 'lyrics' && getAvailableLanguages().length > 0 && (
                             <div className="pt-8">
                                 <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-8">
