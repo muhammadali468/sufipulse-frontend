@@ -421,7 +421,7 @@ export function Release() {
                                             <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded text-xs text-neutral-400 pointer-events-none z-[11]">
                                                 If video doesn't load, open this page in a new tab
                                             </div>
-                                            <button 
+                                            <button
                                                 onClick={toggleFullscreen}
                                                 className="absolute top-4 right-4 z-[20] p-2 bg-black/60 hover:bg-black/90 rounded-md transition-all text-white opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-white/10"
                                                 title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
@@ -984,7 +984,7 @@ export function Release() {
                                             return (
                                                 <button
                                                     key={lang}
-                                                    onClick={() => setSelectedLyricsLanguage(lang)}
+                                                    onClick={() => setSelectedLyricsLanguage(lang as any)}
                                                     className={`px-5 py-3 rounded-lg border font-medium transition-all ${selectedLyricsLanguage === lang
                                                         ? 'bg-neutral-700 border-neutral-600 text-white shadow-lg'
                                                         : 'bg-neutral-800 border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:border-neutral-600'
