@@ -9,6 +9,7 @@ import { roleDisplayMap } from '../lib/roleDisplayMap';
 import { Logo } from './Logo';
 import Link from 'next/link';
 import { usePathname } from "next/navigation";
+import Image from 'next/image';
 // import {SufitubeLogo} from './SufitubeLogo';
 
 export function Header() {
@@ -166,6 +167,7 @@ export function Header() {
           left-0
           right-0
           h-16
+          py-8
           transition-all
           duration-[var(--transition-base)]
           z-[var(--z-header)]
@@ -178,7 +180,7 @@ export function Header() {
         <div
           className={`
             h-full
-            max-w-[var(--max-width-container)]
+            max-w-[1400px]
             mx-auto
             px-[var(--padding-mobile)]
             lg:px-[var(--padding-desktop)]
@@ -200,11 +202,21 @@ export function Header() {
                 items-center
               `.trim()}
             >
-              <img src="/sufitube-logo.png" alt="SufiTube Studio" className="h-8 w-auto object-contain" />
+              {/* <img src="/sufitube-logo.png" alt="SufiTube Studio" className="h-44 py-2 w-auto object-contain" /> */}
+              <div className="mt-2">
+                <Image
+                  src="/sufitube-logo.png"
+                  alt="SufiTube Studio"
+                  width={200}
+                  height={200}
+                  className='py-2'
+                />
+              </div>
             </Link>
             <Link
               href="/literary-journal"
               className={`
+                text-nowrap
                 transition-colors
                 duration-[var(--transition-base)]
                 font-medium
@@ -216,10 +228,10 @@ export function Header() {
             >
               Literary Journal
             </Link>
-            <DualNameDropdownMenu label="Creative Contributors" items={contributorsItems} isActive={false} />
-            <DualNameDropdownMenu label="Production Infrastructure" items={productionItems} isActive={false} />
-            <DualNameDropdownMenu label="Governance" items={governanceItems} isActive={false} />
-            <DropdownMenu label="About" items={aboutItems} isActive={false} />
+            <DualNameDropdownMenu className='text-nowrap' label="Creative Contributors" items={contributorsItems} isActive={false} />
+            <DualNameDropdownMenu className='text-nowrap' label="Production Infrastructure" items={productionItems} isActive={false} />
+            <DualNameDropdownMenu className='text-nowrap' label="Governance" items={governanceItems} isActive={false} />
+            <DropdownMenu className='text-nowrap' label="About" items={aboutItems} isActive={false} />
 
             <AvatarMenu />
           </nav>
@@ -233,6 +245,8 @@ export function Header() {
               transition-colors
               duration-[var(--transition-base)]
               p-2
+                text-nowrap
+
             `.trim()}
             aria-label="Open menu"
           >
@@ -253,6 +267,7 @@ export function Header() {
               transition-opacity
               duration-[var(--transition-base)]
               pointer-events-auto
+              
             `.trim()}
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
