@@ -9,6 +9,7 @@ import { roleDisplayMap } from '../lib/roleDisplayMap';
 import { Logo } from './Logo';
 import Link from 'next/link';
 import { usePathname } from "next/navigation";
+// import {SufitubeLogo} from './SufitubeLogo';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -195,10 +196,11 @@ export function Header() {
                 transition-colors
                 duration-[var(--transition-base)]
                 font-medium
-                
+                flex
+                items-center
               `.trim()}
             >
-              SufiTube
+              <img src="/sufitube-logo.png" alt="SufiTube Studio" className="h-8 w-auto object-contain" />
             </Link>
             <Link
               href="/literary-journal"
@@ -301,11 +303,9 @@ export function Header() {
               <Link
                 href="/releases"
                 className={`
-                  block
+                  flex
+                  items-center
                   py-[var(--space-4)]
-                  text-[var(--color-text-primary)]
-                  hover:text-[var(--color-gold)]
-                  font-medium
                   border-b
                   border-[var(--color-border)]
                   transition-colors
@@ -315,7 +315,7 @@ export function Header() {
                   setIsMobileMenuOpen(false);
                 }}
               >
-                SufiTube
+                <img src="/sufitube-logo.png" alt="SufiTube Studio" className="h-8 w-auto object-contain" />
               </Link>
 
               <Link

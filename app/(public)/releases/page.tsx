@@ -356,9 +356,7 @@ export default function Releases() {
                                                     <Play className="w-8 h-8 text-white ml-1" fill="currentColor" />
                                                 </div>
                                             </div>
-                                            <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs font-medium text-white tracking-wide border border-white/10">
-                                                {video.durationFormatted}
-                                            </div>
+
                                         </div>
 
                                         <h3 className="text-sm! font-bold text-white mb-2 group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug">
@@ -370,9 +368,14 @@ export default function Releases() {
                                                 <Calendar className="w-3.5 h-3.5 opacity-70" />
                                                 {new Date(video.publishedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                                             </div>
-                                            <div className="flex items-center gap-1.5 font-medium tracking-wide">
-                                                <Eye className="w-3.5 h-3.5 opacity-70" />
-                                                {formatViewsDisplay(video.views)} views
+                                            <div className='flex gap-2'>
+                                                <div className="px-2 py-1 rounded text-xs font-medium text-white tracking-wide border border-white/10">
+                                                    {video.durationFormatted}
+                                                </div>
+                                                <div className="flex items-center gap-1.5 font-medium tracking-wide">
+                                                    <Eye className="w-3.5 h-3.5 opacity-70" />
+                                                    {formatViewsDisplay(video.views)} views
+                                                </div>
                                             </div>
                                         </div>
                                     </Link>

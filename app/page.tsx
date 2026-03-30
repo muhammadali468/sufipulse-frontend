@@ -78,7 +78,7 @@ export default function Home() {
           `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=2&order=date&type=video&key=${YOUTUBE_API_KEY}`
         );
         const searchData = await searchRes.json();
-        
+
         const music: Publication[] = [];
         if (searchData.items && searchData.items.length > 0) {
           const videoIds = searchData.items.map((item: any) => item.id.videoId).join(',');
@@ -88,16 +88,16 @@ export default function Home() {
           const videosData = await videosRes.json();
 
           (videosData.items || []).forEach((video: any) => {
-             music.push({
-                id: video.id,
-                type: 'music',
-                title: video.snippet.title,
-                slug: video.id,
-                published_at: video.snippet.publishedAt,
-                description: video.snippet.description,
-                artwork_url: video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high?.url,
-                youtube_video_id: video.id
-             });
+            music.push({
+              id: video.id,
+              type: 'music',
+              title: video.snippet.title,
+              slug: video.id,
+              published_at: video.snippet.publishedAt,
+              description: video.snippet.description,
+              artwork_url: video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high?.url,
+              youtube_video_id: video.id
+            });
           });
         }
 
@@ -752,10 +752,10 @@ export default function Home() {
         <Section background="slate" spacing="normal">
           <PageContainer>
             <div className="text-center mb-12">
-              <Badge variant="gold">Latest Publications</Badge>
-              <h2 className="text-[var(--text-3xl)] md:text-[var(--text-4xl)] font-semibold text-[var(--color-text-primary)] mt-4 mb-4 leading-[var(--leading-tight)]">
-                Recent Publications
-              </h2>
+              <Badge variant="gold">Latest Releases</Badge>
+              {/* <h2 className="text-[var(--text-3xl)] md:text-[var(--text-4xl)] font-semibold text-[var(--color-text-primary)] mt-4 mb-4 leading-[var(--leading-tight)]">
+                Recent Releases
+              </h2> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -831,7 +831,7 @@ export default function Home() {
             <div className="text-center mt-8">
               <Link href="/releases">
                 <PrimaryButton variant="secondary" size="large">
-                  Browse All Publications
+                  Browse All Releases
                 </PrimaryButton>
               </Link>
             </div>

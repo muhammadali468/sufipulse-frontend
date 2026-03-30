@@ -1,13 +1,18 @@
 "use client"
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { Badge } from '../../../components/primitives/Badge';
-import { Music, Lock, Calendar, Hash, Eye, ThumbsUp, MessageCircle, Clock, Share2, Copy, Facebook, Edit, FileText, Subtitles, Play, ChevronDown, X, Twitter, MessageSquare, Check, Mic, Users, PlayCircle } from 'lucide-react';
+import { Music, Lock, Calendar, Hash, Eye, ThumbsUp, MessageCircle, Clock, Share2, Copy, Facebook, Edit, FileText, Subtitles, Play, ChevronDown, X, Twitter, MessageSquare, Check, Mic, Users, PlayCircle, Video, Shield, Sliders, Book, Award, Maximize, Minimize } from 'lucide-react';
 // import { useRelease } from '../../../hooks/useRelease';
 // import { formatDuration } from '../../../services/youtubeSync';
 import Link from 'next/link';
+import YouTube from 'react-youtube';
+import { LyricsTab } from '../../../components/release/lyrics/LyricsTab';
+import { VideoOverlay } from '../../../components/release/lyrics/VideoOverlay';
+import { LanguageKey, dummyTracks } from '../../../components/release/lyrics/lyricsData';
+import { AdoptTab } from '../../../components/release/adopt/AdoptTab';
 
 const LANGUAGE_OPTIONS = [
     { key: 'roman_urdu', label: 'Roman Urdu' },
@@ -38,11 +43,55 @@ export function Release() {
     const [showShareModal, setShowShareModal] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
     const [selectedSubtitleLanguage, setSelectedSubtitleLanguage] = useState<string>('');
-    const [selectedLyricsLanguage, setSelectedLyricsLanguage] = useState<string>('');
+    const [selectedLyricsLanguage, setSelectedLyricsLanguage] = useState<LanguageKey>('roman_urdu');
     const [videoLoaded, setVideoLoaded] = useState(false);
     const [release, setRelease] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [currentTime, setCurrentTime] = useState(0);
+    const [playerTarget, setPlayerTarget] = useState<any>(null);
+    const [captionsEnabled, setCaptionsEnabled] = useState(true);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            containerRef.current?.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    };
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    // Sync time interval
+    useEffect(() => {
+        if (!playerTarget) return;
+        const interval = setInterval(async () => {
+            if (playerTarget.getCurrentTime) {
+                const time = await playerTarget.getCurrentTime();
+                setCurrentTime(time);
+            }
+        }, 300);
+        return () => clearInterval(interval);
+    }, [playerTarget]);
+
+    const handleSeekRequest = (time: number) => {
+        if (playerTarget && playerTarget.seekTo) {
+            playerTarget.seekTo(time, true);
+        }
+    };
 
     useEffect(() => {
         if (!slug) return;
@@ -304,7 +353,7 @@ export function Release() {
                         {/* Video Player - Hero Position */}
                         {(release.youtube_video_id || (release.youtube_url && !release.youtube_url.includes('PLACEHOLDER'))) ? (
                             <div className="mb-8">
-                                <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-2xl border border-neutral-800 relative group">
+                                <div ref={containerRef} className={`bg-black overflow-hidden relative group ${isFullscreen ? 'fixed inset-0 z-[100] w-screen h-screen rounded-none' : 'aspect-video rounded-lg shadow-2xl border border-neutral-800'}`}>
                                     {!videoLoaded && (
                                         <>
                                             <img
@@ -343,20 +392,42 @@ export function Release() {
                                     )}
                                     {videoLoaded && (
                                         <>
-                                            <iframe
-                                                width="100%"
-                                                height="100%"
-                                                src={`https://www.youtube.com/embed/${release.youtube_video_id || slug}?rel=0&modestbranding=1&autoplay=1&mute=1`}
-                                                title={release.release_title}
-                                                frameBorder="0"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                allowFullScreen
-                                                referrerPolicy="strict-origin-when-cross-origin"
-                                                className="w-full h-full"
-                                            />
-                                            <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded text-xs text-neutral-400 pointer-events-none">
+                                            <div className="absolute inset-0 w-full h-full pointer-events-auto">
+                                                <YouTube
+                                                    videoId={release.youtube_video_id || slug}
+                                                    opts={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        playerVars: {
+                                                            autoplay: 1,
+                                                            modestbranding: 1,
+                                                            rel: 0,
+                                                            playsinline: 1,
+                                                            fs: 0
+                                                        }
+                                                    }}
+                                                    onReady={(e) => setPlayerTarget(e.target)}
+                                                    className="w-full h-full absolute inset-0 [&>iframe]:w-full [&>iframe]:h-full"
+                                                />
+                                            </div>
+                                            {/* Video Overlay for Captions */}
+                                            {dummyTracks[selectedLyricsLanguage] && (
+                                                <VideoOverlay
+                                                    track={dummyTracks[selectedLyricsLanguage]}
+                                                    currentTime={currentTime}
+                                                    captionsEnabled={captionsEnabled}
+                                                />
+                                            )}
+                                            <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm px-3 py-1.5 rounded text-xs text-neutral-400 pointer-events-none z-[11]">
                                                 If video doesn't load, open this page in a new tab
                                             </div>
+                                            <button 
+                                                onClick={toggleFullscreen}
+                                                className="absolute top-4 right-4 z-[20] p-2 bg-black/60 hover:bg-black/90 rounded-md transition-all text-white opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-white/10"
+                                                title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                                            >
+                                                {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                                            </button>
                                         </>
                                     )}
                                 </div>
@@ -370,43 +441,13 @@ export function Release() {
                             </div>
                         )}
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-wrap items-center gap-3 mb-8">
-                            {release.youtube_video_id && (
-                                <a
-                                    href={`https://www.youtube.com/watch?v=${release.youtube_video_id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors shadow-lg shadow-red-900/30"
-                                >
-                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                                    </svg>
-                                    Watch on YouTube
-                                </a>
-                            )}
-                            <button
-                                onClick={() => setShowCopyModal(true)}
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium rounded-lg transition-colors"
-                            >
-                                <Copy className="w-4 h-4" />
-                                Copy Link
-                            </button>
-                            <button
-                                onClick={() => setShowShareModal(true)}
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium rounded-lg transition-colors"
-                            >
-                                <Share2 className="w-4 h-4" />
-                                Share
-                            </button>
-                        </div>
-
-                        {/* Tabs Navigation */}
-                        <div className="border-b border-neutral-800">
-                            <div className="flex gap-1 flex-wrap">
+                        {/* Tabs & Action Buttons */}
+                        <div className="flex flex-col lg:flex-row justify-between lg:items-end gap-6 mb-8 border-b border-neutral-800">
+                            {/* Tabs Navigation */}
+                            <div className="flex gap-1 flex-wrap overflow-x-auto pb-0">
                                 <button
                                     onClick={() => setActiveTab('credits')}
-                                    className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'credits'
+                                    className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'credits'
                                         ? 'text-neutral-100'
                                         : 'text-neutral-500 hover:text-neutral-300'
                                         }`}
@@ -419,9 +460,9 @@ export function Release() {
                                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
                                     )}
                                 </button>
-                                <button
+                                {/* <button
                                     onClick={() => setActiveTab('production')}
-                                    className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'production'
+                                    className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'production'
                                         ? 'text-neutral-100'
                                         : 'text-neutral-500 hover:text-neutral-300'
                                         }`}
@@ -430,23 +471,12 @@ export function Release() {
                                     {activeTab === 'production' && (
                                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
                                     )}
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('adopt')}
-                                    className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'adopt'
-                                        ? 'text-neutral-100'
-                                        : 'text-neutral-500 hover:text-neutral-300'
-                                        }`}
-                                >
-                                    Adopt this Song
-                                    {activeTab === 'adopt' && (
-                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
-                                    )}
-                                </button>
+                                </button> */}
+
                                 {release.subtitles_available && release.subtitle_languages && release.subtitle_languages.length > 0 && (
                                     <button
                                         onClick={() => setActiveTab('subtitles')}
-                                        className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'subtitles'
+                                        className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'subtitles'
                                             ? 'text-neutral-100'
                                             : 'text-neutral-500 hover:text-neutral-300'
                                             }`}
@@ -460,41 +490,24 @@ export function Release() {
                                         )}
                                     </button>
                                 )}
-                                {/* {getAvailableLanguages().length > 0 && (
-                                    <button
-                                        onClick={() => setActiveTab('lyrics')}
-                                        className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'lyrics'
-                                            ? 'text-neutral-100'
-                                            : 'text-neutral-500 hover:text-neutral-300'
-                                            }`}
-                                    >
-                                        <span className="flex items-center gap-2">
-                                            <FileText className="w-4 h-4" />
-                                            Lyrics
-                                        </span>
-                                        {activeTab === 'lyrics' && (
-                                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
-                                        )}
-                                    </button>
-                                )} */}
                                 <button
                                     onClick={() => setActiveTab('lyrics')}
-                                    className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'lyrics'
+                                    className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'lyrics'
                                         ? 'text-neutral-100'
                                         : 'text-neutral-500 hover:text-neutral-300'
                                         }`}
                                 >
                                     <span className="flex items-center gap-2">
                                         <FileText className="w-4 h-4" />
-                                        Lyrics
+                                        Select Lyrics Language
                                     </span>
                                     {activeTab === 'lyrics' && (
                                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
                                     )}
                                 </button>
-                                <button
+                                {/* <button
                                     onClick={() => setActiveTab('overview')}
-                                    className={`px-6 py-3 font-medium transition-all relative ${activeTab === 'overview'
+                                    className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'overview'
                                         ? 'text-neutral-100'
                                         : 'text-neutral-500 hover:text-neutral-300'
                                         }`}
@@ -503,6 +516,42 @@ export function Release() {
                                     {activeTab === 'overview' && (
                                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
                                     )}
+                                </button> */}
+                                <button
+                                    onClick={() => setActiveTab('adopt')}
+                                    className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'adopt'
+                                        ? 'text-neutral-100'
+                                        : 'text-neutral-500 hover:text-neutral-300'
+                                        }`}
+                                >
+                                    Adopt this Song
+                                    {activeTab === 'adopt' && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-3 lg:pb-2">
+                                {release.youtube_video_id && (
+                                    <a
+                                        href={`https://www.youtube.com/watch?v=${release.youtube_video_id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-red-900/30 whitespace-nowrap"
+                                    >
+                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                                        </svg>
+                                        Watch on YouTube
+                                    </a>
+                                )}
+                                <button
+                                    onClick={() => setShowShareModal(true)}
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+                                >
+                                    <Share2 className="w-4 h-4" />
+                                    Share
                                 </button>
                             </div>
                         </div>
@@ -528,372 +577,323 @@ export function Release() {
                         {activeTab === 'credits' && (
                             <div className="pt-8">
                                 <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-8">
-                                    <h3 className="text-3xl font-serif font-light text-neutral-100 mb-8">Contributors</h3>
+                                    <h3 className="text-3xl font-serif font-light text-neutral-100 mb-8">Official Credits</h3>
 
-                                    {/* Writer | Lyricist | Composer Section */}
-                                    {writerCredits.length > 0 && (
-                                        <div className="mb-8 p-6 bg-neutral-900 border border-neutral-800 rounded-lg">
-                                            <div className="flex items-start gap-4">
-                                                <FileText className="w-8 h-8 text-neutral-400" strokeWidth={1.5} />
-                                                <div className="flex-1">
-                                                    <h4 className="text-2xl font-medium text-neutral-100 mb-6">Writer | Lyricist | Composer</h4>
-                                                    {/* <div className="space-y-3">
-                                                        {writerCredits.map(credit => (
-                                                            <div key={credit.id} className="bg-neutral-950 rounded-lg px-5 py-4 border border-neutral-800">
-                                                                <span className="text-neutral-200 text-lg">{credit.display_name}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div> */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        {/* Artistic Credits */}
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            {/* <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div> */}
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <Mic className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Artistic Credits</h4>
+                                            </div>
+                                            <div className="space-y-4 relative">
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Lead Vocalist</p>
+                                                    <p className="text-neutral-200">Ayaan Rahmani</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Lyricist</p>
+                                                    <p className="text-neutral-200">Dr. Fayaz Khan</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Composer</p>
+                                                    <p className="text-neutral-200">SufiPulse Studio</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Music Producer</p>
+                                                    <p className="text-neutral-200">Hamza Qadri</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Background Vocals</p>
+                                                    <p className="text-neutral-200">Studio Ensemble</p>
                                                 </div>
                                             </div>
                                         </div>
-                                    )}
 
-                                    {/* Vocalists Section - Database Credits */}
-                                    {vocalistCredits.length > 0 && (
-                                        <div className="mb-8 p-6 bg-neutral-900 border border-neutral-800 rounded-lg">
-                                            <div className="flex items-start gap-4">
-                                                <Mic className="w-8 h-8 text-neutral-400" strokeWidth={1.5} />
-                                                <div className="flex-1">
-                                                    <h4 className="text-2xl font-medium text-neutral-100 mb-6">Vocalists</h4>
-                                                    {/* <div className="space-y-3">
-                                                        {vocalistCredits.map(credit => (
-                                                            <div key={credit.id} className="bg-neutral-950 rounded-lg px-5 py-4 border border-neutral-800">
-                                                                <span className="text-neutral-200 text-lg">{credit.display_name}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div> */}
+                                        {/* Production Credits */}
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            {/* <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div> */}
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <Sliders className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Production Credits</h4>
+                                            </div>
+                                            <div className="space-y-4 relative">
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Recorded at</p>
+                                                    <p className="text-neutral-200">SufiPulse Studio I</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Recording Engineer</p>
+                                                    <p className="text-neutral-200">Bilal Ahmad</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Mix & Master</p>
+                                                    <p className="text-neutral-200">Rehan Mir</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Sound Design</p>
+                                                    <p className="text-neutral-200">SufiPulse Audio Unit</p>
                                                 </div>
                                             </div>
                                         </div>
-                                    )}
 
-                                    {/* Vocalists Section - Legacy JSONB Arrays (for backward compatibility) */}
-                                    {vocalistCredits.length === 0 && ((release.lead_vocalists && release.lead_vocalists.length > 0) || (release.chorus_vocalists && release.chorus_vocalists.length > 0)) && (
-                                        <div className="mb-8 p-6 bg-neutral-900 border border-neutral-800 rounded-lg">
-                                            <div className="flex items-start gap-4">
-                                                <Mic className="w-8 h-8 text-neutral-400" strokeWidth={1.5} />
-                                                <div className="flex-1">
-                                                    <h4 className="text-2xl font-medium text-neutral-100 mb-6">Vocalists</h4>
-
-                                                    {release.lead_vocalists && release.lead_vocalists.length > 0 && (
-                                                        <div className="mb-6">
-                                                            <span className="text-sm text-neutral-500 uppercase tracking-wide block mb-3">Lead Vocalist{release.lead_vocalists.length > 1 ? 's' : ''}</span>
-                                                            {/* <div className="space-y-3">
-                                                                {release.lead_vocalists.map((vocalist, idx) => (
-                                                                    <div key={idx} className="bg-neutral-950 rounded-lg px-5 py-4 border border-neutral-800">
-                                                                        <span className="text-neutral-200 text-lg">{vocalist}</span>
-                                                                    </div>
-                                                                ))}
-                                                            </div> */}
-                                                        </div>
-                                                    )}
-
-                                                    {release.chorus_vocalists && release.chorus_vocalists.length > 0 && (
-                                                        <div className={release.lead_vocalists && release.lead_vocalists.length > 0 ? 'pt-6 border-t border-neutral-800' : ''}>
-                                                            <span className="text-sm text-neutral-500 uppercase tracking-wide block mb-3">Chorus & Whisper Interlude</span>
-                                                            {/* <div className="space-y-3">
-                                                                {release.chorus_vocalists.map((vocalist, idx) => (
-                                                                    <div key={idx} className="bg-neutral-950 rounded-lg px-5 py-4 border border-neutral-800">
-                                                                        <span className="text-neutral-200 text-lg">{vocalist}</span>
-                                                                    </div>
-                                                                ))}
-                                                            </div> */}
-                                                        </div>
-                                                    )}
+                                        {/* Visual Credits */}
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            {/* <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div> */}
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <Video className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Visual Credits</h4>
+                                            </div>
+                                            <div className="space-y-4 relative">
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Video Direction</p>
+                                                    <p className="text-neutral-200">SufiTube Visual Desk</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Editing</p>
+                                                    <p className="text-neutral-200">Danish Raina</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Thumbnail Design</p>
+                                                    <p className="text-neutral-200">Creative Contributors Unit</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Artwork</p>
+                                                    <p className="text-neutral-200">SufiPulse Studio Design Cell</p>
                                                 </div>
                                             </div>
                                         </div>
-                                    )}
 
-                                    {/* Empty State */}
-                                    {writerCredits.length === 0 && vocalistCredits.length === 0 &&
-                                        (!release.lead_vocalists || release.lead_vocalists.length === 0) &&
-                                        (!release.chorus_vocalists || release.chorus_vocalists.length === 0) && (
-                                            <div className="text-center py-12">
-                                                <Users className="w-16 h-16 text-neutral-700 mx-auto mb-4" strokeWidth={1} />
-                                                <p className="text-neutral-500 text-lg">No contributor credits available yet</p>
+                                        {/* Literary & Language Credits */}
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            {/* <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div> */}
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <Book className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Literary & Language</h4>
                                             </div>
-                                        )}
+                                            <div className="space-y-4 relative">
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Roman Transliteration</p>
+                                                    <p className="text-neutral-200">Editorial Team</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">English Translation</p>
+                                                    <p className="text-neutral-200">Language Desk</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Thematic Interpretation</p>
+                                                    <p className="text-neutral-200">Literary Journal Team</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Proofreading</p>
+                                                    <p className="text-neutral-200">Release Text Review Unit</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Release & Rights */}
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors md:col-span-2">
+                                            {/* <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-105"></div> */}
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <Shield className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Release & Rights</h4>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Published by</p>
+                                                    <p className="text-neutral-200">SufiPulse</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Platform</p>
+                                                    <p className="text-neutral-200">SufiTube</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Registered Release ID</p>
+                                                    <p className="text-neutral-200 font-mono text-sm">SP-RR-2026-021</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Release Date</p>
+                                                    <p className="text-neutral-200">February 7, 2026</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Copyright Holder</p>
+                                                    <p className="text-neutral-200 flex items-center gap-2">SufiPulse Studio <Check className="w-3 h-3 text-cyan-400" /></p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Licensing / Permissions</p>
+                                                    <Link href="#" className="text-amber-400 hover:text-amber-300 underline underline-offset-4 decoration-amber-400/30 text-sm">official contact or form</Link>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* Adopt this Song Tab */}
-                        {activeTab === 'adopt' && (
+                        {/* Lyrics Tab */}
+                        {activeTab === 'lyrics' && (
+                            <LyricsTab
+                                selectedLanguage={selectedLyricsLanguage}
+                                onLanguageChange={setSelectedLyricsLanguage}
+                                currentTime={currentTime}
+                                onSeekRequest={handleSeekRequest}
+                                captionsEnabled={captionsEnabled}
+                                onToggleCaptions={() => setCaptionsEnabled(!captionsEnabled)}
+                            />
+                        )}
+
+                        {/* Production Tab */}
+                        {/* {activeTab === 'production' && (
                             <div className="pt-8">
                                 <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-8">
-                                    <h3 className="text-3xl font-serif font-light text-neutral-100 mb-4">A Guidebook for Well-Wishers</h3>
-                                    <p className="text-neutral-400 text-lg leading-relaxed mb-12">
-                                        If this kalam has moved you, and you wish to help it reach others quietly and with grace, this guide will show you how to use Google Ads to support its spread — without noise, without pressure, and with full control over your contribution.
-                                    </p>
+                                    <h3 className="text-3xl font-serif font-light text-neutral-100 mb-8">Production Record</h3>
 
-                                    {/* What You Need Before You Begin */}
-                                    <div className="mb-12">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">What You Need Before You Begin</h4>
-                                        <p className="text-neutral-300 mb-4">You only need four things:</p>
-                                        <div className="space-y-3">
-                                            <div className="flex items-start gap-3 bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-                                                <span className="text-xl">1.</span>
-                                                <span className="text-neutral-300">A Google account (Gmail)</span>
-                                            </div>
-                                            <div className="flex items-start gap-3 bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-                                                <span className="text-xl">2.</span>
-                                                <span className="text-neutral-300">A payment method (card or bank)</span>
-                                            </div>
-                                            <div className="flex items-start gap-3 bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-                                                <span className="text-xl">3.</span>
-                                                <span className="text-neutral-300">A YouTube link (channel or song)</span>
-                                            </div>
-                                            <div className="flex items-start gap-3 bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-                                                <span className="text-xl">4.</span>
-                                                <span className="text-neutral-300">A quiet intention</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Signing In to Google Ads */}
-                                    <div className="mb-12">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">Signing In to Google Ads (From Zero)</h4>
-                                        <div className="space-y-3 mb-6">
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">1.</span>
-                                                <span className="text-neutral-300">Open your browser</span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">2.</span>
-                                                <span className="text-neutral-300">Go to Google Ads</span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">3.</span>
-                                                <span className="text-neutral-300">Sign in with your Google (Gmail) account</span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">4.</span>
-                                                <span className="text-neutral-300">Click Start now</span>
-                                            </div>
-                                        </div>
-                                        <div className="bg-amber-900/20 border border-amber-800/50 rounded-lg p-5">
-                                            <p className="text-amber-200/90 font-medium mb-2">When prompted about "Smart campaigns":</p>
-                                            <ul className="space-y-1 text-amber-100/80 ml-4">
-                                                <li>• Scroll down</li>
-                                                <li>• Click <strong>Switch to Expert Mode</strong></li>
-                                            </ul>
-                                            <p className="text-amber-100/70 text-sm mt-3 italic">This gives you full control and avoids automated mistakes.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Creating Your Google Ads Account */}
-                                    <div className="mb-12">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">Creating Your Google Ads Account</h4>
-                                        <p className="text-neutral-300 mb-4">If this is your first time, Google will ask about your goal.</p>
-                                        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5 mb-4">
-                                            <p className="text-neutral-200 font-medium mb-3">Choose:</p>
-                                            <p className="text-neutral-300 italic">Create a campaign without a goal's guidance</p>
-                                        </div>
-                                        <p className="text-neutral-300 mb-3">Enter:</p>
-                                        <ul className="space-y-2 ml-4 text-neutral-300">
-                                            <li>• <strong>Business name:</strong> SufiPulse Supporter (or any name you prefer)</li>
-                                            <li>• <strong>Website:</strong> paste the SufiPulse channel or video link</li>
-                                        </ul>
-                                        <p className="text-neutral-400 mt-4">Submit and continue.</p>
-                                    </div>
-
-                                    {/* Setting Up Billing */}
-                                    <div className="mb-12">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">Setting Up Billing (Your Contribution)</h4>
-                                        <div className="space-y-3 mb-6">
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">1.</span>
-                                                <span className="text-neutral-300">In Google Ads, open <strong>Tools & Settings</strong></span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">2.</span>
-                                                <span className="text-neutral-300">Click <strong>Billing</strong></span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">3.</span>
-                                                <span className="text-neutral-300">Choose <strong>Settings</strong></span>
-                                            </div>
-                                        </div>
-                                        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5 mb-4">
-                                            <p className="text-neutral-200 font-medium mb-3">Fill in:</p>
-                                            <ul className="space-y-2 text-neutral-300">
-                                                <li>• Country</li>
-                                                <li>• Time zone (choose carefully, cannot be changed)</li>
-                                                <li>• Currency (USD recommended)</li>
-                                            </ul>
-                                        </div>
-                                        <p className="text-neutral-300 mb-3">Add a payment method:</p>
-                                        <ul className="space-y-2 ml-4 text-neutral-300 mb-4">
-                                            <li>• Credit or debit card</li>
-                                            <li>• Or bank account</li>
-                                        </ul>
-                                        <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-5">
-                                            <p className="text-blue-200 font-medium mb-2">Optional but recommended:</p>
-                                            <p className="text-blue-100/80">• Set a monthly spending limit</p>
-                                            <p className="text-blue-100/70 text-sm mt-3 italic">Your payment details remain private. SufiPulse never sees them.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Choosing What You Will Promote */}
-                                    <div className="mb-12">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">Choosing What You Will Promote</h4>
-                                        <div className="grid md:grid-cols-2 gap-4">
-                                            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
-                                                <p className="text-neutral-200 font-medium mb-3">To promote the channel</p>
-                                                <p className="text-neutral-400 text-sm mb-2">Use:</p>
-                                                <code className="block bg-neutral-950 px-3 py-2 rounded text-sm text-blue-400 font-mono break-all">
-                                                    https://youtube.com/@sufipulse-usa
-                                                </code>
-                                            </div>
-                                            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
-                                                <p className="text-neutral-200 font-medium mb-3">To promote this kalam</p>
-                                                <p className="text-neutral-400 text-sm mb-2">Copy this video's YouTube link:</p>
-                                                {release.youtube_video_id && (
-                                                    <code className="block bg-neutral-950 px-3 py-2 rounded text-sm text-blue-400 font-mono break-all">
-                                                        https://www.youtube.com/watch?v={release.youtube_video_id}
-                                                    </code>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <p className="text-neutral-400 text-sm mt-4 italic text-center">Both are equally valid.</p>
-                                    </div>
-
-                                    {/* Creating Your First Campaign */}
-                                    <div className="mb-12">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">Creating Your First Campaign</h4>
-                                        <div className="space-y-4">
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">1.</span>
-                                                <span className="text-neutral-300">Click <strong>New Campaign</strong></span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">2.</span>
-                                                <div className="flex-1">
-                                                    <p className="text-neutral-300 mb-2">Choose goal:</p>
-                                                    <ul className="ml-4 space-y-1 text-neutral-400">
-                                                        <li>◦ Brand awareness and reach</li>
-                                                        <li>OR</li>
-                                                        <li>◦ Product and brand consideration</li>
-                                                    </ul>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        
+                                        Production Summary
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors md:col-span-2">
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <FileText className="w-5 h-5 text-amber-400" />
                                                 </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Production Summary</h4>
                                             </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">3.</span>
-                                                <div className="flex-1">
-                                                    <p className="text-neutral-300 mb-2">Campaign type:</p>
-                                                    <p className="ml-4 text-neutral-400">◦ Video</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">4.</span>
-                                                <div className="flex-1">
-                                                    <p className="text-neutral-300 mb-2">Campaign subtype:</p>
-                                                    <p className="ml-4 text-neutral-400">◦ Custom video campaign</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">5.</span>
-                                                <div className="flex-1">
-                                                    <p className="text-neutral-300 mb-2">Ad format:</p>
-                                                    <p className="ml-4 text-neutral-400">◦ Skippable in-stream ad</p>
+                                            <div className="relative text-neutral-300 leading-relaxed max-w-4xl">
+                                                <p>This release was developed as a studio devotional recording with an accompanying visual presentation. The production focused on a restrained sonic atmosphere so the lyrical invocation remained central. Final output includes video, synchronized lyrics, and registered release metadata.</p>
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-neutral-800/50">
+                                                    <div><span className="block text-xs text-neutral-500 uppercase">Type</span><span className="text-sm text-neutral-200">Studio Audio/Visual</span></div>
+                                                    <div><span className="block text-xs text-neutral-500 uppercase">Format</span><span className="text-sm text-neutral-200">Digital Release</span></div>
+                                                    <div><span className="block text-xs text-neutral-500 uppercase">Status</span><span className="text-sm text-neutral-200">Final Master</span></div>
+                                                    <div><span className="block text-xs text-neutral-500 uppercase">Location</span><span className="text-sm text-neutral-200">SufiPulse Studio</span></div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <p className="text-neutral-400 mt-4">Continue.</p>
-                                    </div>
 
-                                    {/* Budget and Bidding */}
-                                    <div className="mb-12">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">Budget and Bidding (Gentle by Design)</h4>
-                                        <div className="bg-green-900/20 border border-green-800/50 rounded-lg p-6">
-                                            <p className="text-green-200 font-medium mb-4">Recommended starting point:</p>
-                                            <ul className="space-y-2 text-green-100/90">
-                                                <li>• <strong>Daily budget:</strong> $5–$10</li>
-                                                <li>• <strong>Bidding strategy:</strong> Maximum CPV</li>
-                                                <li>• <strong>Max CPV:</strong> $0.01–$0.03</li>
-                                            </ul>
+                                        Audio Production
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <Sliders className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Audio Production</h4>
+                                            </div>
+                                            <div className="space-y-4 relative">
+                                                <p className="text-neutral-300 text-sm leading-relaxed mb-4">Vocals were recorded in a controlled studio session with a close-mic intimate delivery style. The arrangement was intentionally minimal, using soft harmonic support and light rhythmic depth to preserve meditative concentration. Mixing prioritized vocal clarity, warmth, and lyrical intelligibility.</p>
+                                                <div className="space-y-3">
+                                                    <div><span className="text-xs text-neutral-500 uppercase mr-2">Method:</span><span className="text-sm text-neutral-200">Close-mic studio capture</span></div>
+                                                    <div><span className="text-xs text-neutral-500 uppercase mr-2">Arrangement:</span><span className="text-sm text-neutral-200">Minimalist ambient support</span></div>
+                                                    <div><span className="text-xs text-neutral-500 uppercase mr-2">Mix/Master:</span><span className="text-sm text-neutral-200">Vocal-forward clarity</span></div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Location and Language Selection */}
-                                    <div className="mb-12">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">Location and Language Selection</h4>
-                                        <p className="text-neutral-300 mb-6">Keep this simple.</p>
-                                        <div className="space-y-4">
-                                            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
-                                                <p className="text-neutral-200 font-medium mb-3">South Asia</p>
-                                                <ul className="space-y-2 text-neutral-300 text-sm">
-                                                    <li>• <strong>Countries:</strong> India, Pakistan, Bangladesh</li>
-                                                    <li>• <strong>Languages:</strong> Urdu, Hindi, Punjabi, Bengali</li>
-                                                </ul>
+                                        Visual Production
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <Video className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Visual Production</h4>
                                             </div>
-                                            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
-                                                <p className="text-neutral-200 font-medium mb-3">Middle East</p>
-                                                <ul className="space-y-2 text-neutral-300 text-sm">
-                                                    <li>• <strong>Countries:</strong> UAE, Saudi Arabia, Turkey</li>
-                                                    <li>• <strong>Languages:</strong> Arabic, Turkish, Persian</li>
-                                                </ul>
+                                            <div className="space-y-4 relative">
+                                                <p className="text-neutral-300 text-sm leading-relaxed mb-4">The visual treatment followed a contemplative studio aesthetic rather than a narrative cinematic structure. Editing was paced to support reflection, with clean transitions and restrained motion. Thumbnail and frame composition were designed to align with the spiritual seriousness of the release.</p>
+                                                <div className="space-y-3">
+                                                    <div><span className="text-xs text-neutral-500 uppercase mr-2">Type:</span><span className="text-sm text-neutral-200">Studio Performance</span></div>
+                                                    <div><span className="text-xs text-neutral-500 uppercase mr-2">Editing Style:</span><span className="text-sm text-neutral-200">Paced for reflection</span></div>
+                                                    <div><span className="text-xs text-neutral-500 uppercase mr-2">Visual Tone:</span><span className="text-sm text-neutral-200">Restrained & Contemplative</span></div>
+                                                </div>
                                             </div>
-                                            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
-                                                <p className="text-neutral-200 font-medium mb-3">Western listeners</p>
-                                                <ul className="space-y-2 text-neutral-300 text-sm">
-                                                    <li>• <strong>Countries:</strong> USA, Canada, Europe</li>
-                                                    <li>• <strong>Language:</strong> English</li>
+                                        </div>
+
+                                        Creative Direction
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <Book className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Creative Direction</h4>
+                                            </div>
+                                            <div className="space-y-4 relative">
+                                                <p className="text-neutral-300 text-sm leading-relaxed mb-4">The production approach was shaped by the central theme of stepping away from ego. Both the sonic and visual language were kept uncluttered so the release conveyed inwardness, humility, and invitation rather than performance spectacle.</p>
+                                                <div className="space-y-3">
+                                                    <div><span className="text-xs text-neutral-500 uppercase mr-2">Thematic Objective:</span><span className="text-sm text-neutral-200">Inwardness & Humility</span></div>
+                                                    <div><span className="text-xs text-neutral-500 uppercase mr-2">Spiritual Framing:</span><span className="text-sm text-neutral-200">Stepping away from ego</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        Production Workflow
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <Clock className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Workflow Timeline</h4>
+                                            </div>
+                                            <div className="relative">
+                                                <div className="space-y-4 relative before:absolute before:inset-0 before:left-[11px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-neutral-800 before:to-transparent">
+                                                    {[
+                                                        "Concept alignment",
+                                                        "Studio recording",
+                                                        "Mix/Master approved",
+                                                        "Visual edit finalized",
+                                                        "Metadata review",
+                                                        "Distribution linked to YouTube"
+                                                    ].map((step, i) => (
+                                                        <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                                                            <div className="flex items-center justify-center w-6 h-6 rounded-full border border-neutral-800 bg-neutral-900 group-hover:bg-amber-400/20 group-hover:border-amber-400/50 transition-colors shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                                                                <Check className="w-3 h-3 text-amber-500" />
+                                                            </div>
+                                                            <div className="w-[calc(100%-3rem)] md:w-[calc(50%-1.5rem)] pl-3 md:pl-0 md:group-odd:pr-3 md:group-even:pl-3">
+                                                                <div className="text-sm font-medium text-neutral-300">{step}</div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        Production Notes
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            <div className="flex items-center gap-3 mb-6 relative">
+                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                    <MessageSquare className="w-5 h-5 text-amber-400" />
+                                                </div>
+                                                <h4 className="text-xl font-medium text-neutral-100">Production Notes</h4>
+                                            </div>
+                                            <div className="relative">
+                                                <p className="text-neutral-300 text-sm leading-relaxed mb-4 italic border-l-2 border-neutral-700 pl-4 py-1">
+                                                    "The raw acoustic resonance of the recording space was intentionally preserved to give a sense of physical closeness and authenticity... The entire session maintained an atmosphere of reverence."
+                                                </p>
+                                                <ul className="space-y-2 text-sm text-neutral-400 mt-4">
+                                                    <li className="flex items-start gap-2">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500/50 mt-1.5 shrink-0"></div>
+                                                        <span>Archival observation: Exceptional vocal take retained despite minor room noise for emotional impact.</span>
+                                                    </li>
                                                 </ul>
                                             </div>
                                         </div>
-                                        <p className="text-neutral-400 text-sm mt-4 italic">You do not need to cover the world at once.</p>
-                                    </div>
 
-                                    {/* Adding the Video */}
-                                    <div className="mb-12">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">Adding the Video</h4>
-                                        <div className="space-y-3">
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">1.</span>
-                                                <span className="text-neutral-300">Paste the YouTube link</span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">2.</span>
-                                                <span className="text-neutral-300">Select <strong>In-stream ad</strong></span>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="text-neutral-500 font-medium">3.</span>
-                                                <div className="flex-1">
-                                                    <p className="text-neutral-300 mb-2">Call to action:</p>
-                                                    <ul className="ml-4 space-y-1 text-neutral-400">
-                                                        <li>◦ "Watch"</li>
-                                                        <li>◦ "Listen"</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Publishing and Letting It Be */}
-                                    <div className="mb-8">
-                                        <h4 className="text-2xl font-medium text-neutral-100 mb-6">Publishing and Letting It Be</h4>
-                                        <ul className="space-y-3 text-neutral-300">
-                                            <li>• Review settings</li>
-                                            <li>• Click <strong>Publish</strong></li>
-                                        </ul>
-                                        <div className="bg-purple-900/20 border border-purple-800/50 rounded-lg p-6 mt-6">
-                                            <p className="text-purple-200 mb-2">Google usually approves within a few hours.</p>
-                                            <p className="text-purple-100/90 mb-3">Let the campaign run for at least 3 days without changes.</p>
-                                            <p className="text-purple-100/70 italic">Silence is not failure here.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Closing */}
-                                    <div className="border-t border-neutral-800 pt-8 mt-8">
-                                        <p className="text-neutral-400 text-center leading-relaxed">
-                                            This is an act of quiet support. Your contribution helps this kalam reach hearts that need it, and you remain unseen in the process — as it should be.
-                                        </p>
                                     </div>
                                 </div>
                             </div>
+                        )} */}
+
+                        {/* Adopt this Song Tab */}
+                        {activeTab === 'adopt' && (
+                            <AdoptTab release={release} />
                         )}
 
                         {/* Subtitles Tab */}
@@ -1201,6 +1201,18 @@ export function Release() {
                                 </button>
                             </div>
                             <div className="space-y-3">
+                                <button
+                                    onClick={() => handleCopyLink()}
+                                    className="w-full flex items-center gap-4 p-4 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors text-left"
+                                >
+                                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <Copy className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <div className="text-neutral-100 font-medium">Copy Link Text</div>
+                                        {/* <div className="text-sm text-neutral-500">Share on Facebook</div> */}
+                                    </div>
+                                </button>
                                 <button
                                     onClick={() => handleShare('facebook')}
                                     className="w-full flex items-center gap-4 p-4 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors text-left"
