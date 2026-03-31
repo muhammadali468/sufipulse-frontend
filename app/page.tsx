@@ -208,9 +208,11 @@ export default function Home() {
               <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
                 Governed Structure for Sacred Content
               </h2>
-              <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
-                SufiPulse operates under a comprehensive governance system with formal oversight mechanisms, transparent economic protocols, and institutional accountability standards.
-              </p>
+              <div className="w-full">
+                <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
+                  SufiPulse operates under a comprehensive governance system with formal oversight mechanisms, transparent economic protocols, and institutional accountability standards.
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

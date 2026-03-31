@@ -39,12 +39,14 @@ export default function Releases() {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
-                const YOUTUBE_API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || 'AIzaSyCw34bUCxl_8S5R8I-380YyFOLDqpWL-R4';
+                const YOUTUBE_API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
                 const CHANNEL_ID = 'UCraDr3i5A3k0j7typ6tOOsQ';
 
                 const searchRes = await fetch(
                     `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&maxResults=50&order=date&type=video&key=${YOUTUBE_API_KEY}`
                 );
+                console.log("searchRes", searchRes)
+
                 const searchData = await searchRes.json();
 
                 if (!searchData.items || searchData.items.length === 0) {
@@ -98,6 +100,7 @@ export default function Releases() {
                 setLoading(false);
             }
         };
+
 
         fetchVideos();
     }, []);

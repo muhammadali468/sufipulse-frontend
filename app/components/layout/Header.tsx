@@ -166,7 +166,7 @@ export function Header() {
           top-0
           left-0
           right-0
-          h-16
+          h-28
           py-8
           transition-all
           duration-[var(--transition-base)]
@@ -189,29 +189,28 @@ export function Header() {
             justify-between
           `.trim()}
         >
-          <Logo />
+          {/* <Logo /> */}
 
           <nav className="hidden lg:flex items-center gap-8">
-            <Link
-              href="/releases"
-              className={`
-                transition-colors
-                duration-[var(--transition-base)]
-                font-medium
-                flex
-                items-center
-              `.trim()}
-            >
-              {/* <img src="/sufitube-logo.png" alt="SufiTube Studio" className="h-44 py-2 w-auto object-contain" /> */}
-              <div className="mt-2">
-                <Image
-                  src="/sufitube-logo.png"
-                  alt="SufiTube Studio"
-                  width={200}
-                  height={200}
-                  className='py-2'
-                />
-              </div>
+
+            {/* <img src="/sufitube-logo.png" alt="SufiTube Studio" className="h-44 py-2 w-auto object-contain" /> */}
+            <Link href={"/"} className="mt-2">
+              <Image
+                src="/sufipulse-logo-v5.png"
+                alt="sufipulse Studio"
+                width={100}
+                height={100}
+                className='py-2'
+              />
+            </Link>
+            <Link href={"/releases"} className="mt-2">
+              <Image
+                src="/sufitube-logo-v5.png"
+                alt="sufitube Studio"
+                width={150}
+                height={150}
+                className='py-2'
+              />
             </Link>
             <Link
               href="/literary-journal"
