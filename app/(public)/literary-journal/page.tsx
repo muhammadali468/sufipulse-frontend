@@ -35,8 +35,8 @@ export default function LiteraryJournal() {
 
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
-            filtered = filtered.filter(a => 
-                a.title.toLowerCase().includes(q) || 
+            filtered = filtered.filter(a =>
+                a.title.toLowerCase().includes(q) ||
                 a.excerpt.toLowerCase().includes(q)
             );
         }
@@ -76,7 +76,7 @@ export default function LiteraryJournal() {
 
     return (
         <Layout>
-            <Section className="pt-24 pb-12 bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-900">
+            <Section className="pt-24 pb-12 ">
                 <PageContainer>
                     <div className="max-w-5xl mx-auto text-center">
                         <div className="mb-6">

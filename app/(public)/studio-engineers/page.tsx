@@ -2,6 +2,7 @@ import { Settings, Sliders, CheckCircle2, Calendar, Mic2, Radio, Globe2, Sparkle
 import { Layout } from '../../components/layout/Layout';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { Section } from '../../components/layout/Section';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 export default function StudioEngineers() {
     const engineeringExpertise = [
@@ -175,7 +176,7 @@ export default function StudioEngineers() {
                             Studio Engineers
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-6 border-b border-amber-400/20 pb-4 inline-block">
-                            Technical Stewardship
+                            {roleDisplayMap.studio_engineer.mystical}
                         </p>
 
                         <div className="mt-8 max-w-3xl">

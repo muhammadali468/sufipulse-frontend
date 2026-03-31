@@ -8,6 +8,7 @@ import { Section } from '../../components/layout/Section';
 import { useRef, useState, useEffect } from 'react';
 import { ProducerCredentialsForm } from '../../components/producers/ProducerCredentialsForm';
 import Link from 'next/link';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 export default function Producers() {
     const workflowScrollRef = useRef<HTMLDivElement>(null);
@@ -65,7 +66,7 @@ export default function Producers() {
                             Producers
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-6 border-b border-amber-400/20 pb-4 inline-block">
-                            {/* {roleDisplayMap.engineer.mystical} */}
+                            {roleDisplayMap.engineer.mystical}
                         </p>
 
                         <div className="mt-8 max-w-3xl">

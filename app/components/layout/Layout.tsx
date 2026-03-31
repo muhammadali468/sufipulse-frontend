@@ -13,7 +13,7 @@ export function Layout({ children }: LayoutProps) {
 
       <div className="h-16" aria-hidden="true" />
 
-      <main className="flex-1">
+      <main className="flex-1 mt-20">
         {children}
       </main>
 

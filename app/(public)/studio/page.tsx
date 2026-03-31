@@ -9,6 +9,7 @@ import { useState, useRef } from 'react';
 // import { Link } from 'react-router-dom';
 import StudioCredentialsForm from '../../components/studio/StudioCredentialsForm';
 import Link from 'next/link';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 export default function Studio() {
     const [expandedStage, setExpandedStage] = useState<string | null>(null);
@@ -87,9 +88,9 @@ export default function Studio() {
                         <h1 className="text-5xl font-bold text-white mb-2">
                             Studio
                         </h1>
-                        {/* <p className="text-xl text-amber-400/90 mb-6 border-b border-amber-400/20 pb-4 inline-block">
-              {roleDisplayMap.studio.mystical}
-            </p> */}
+                        <p className="text-xl text-amber-400/90 mb-6 border-b border-amber-400/20 pb-4 inline-block">
+                            {roleDisplayMap.studio.mystical}
+                        </p>
 
                         <div className="mt-8 max-w-3xl">
                             <p className="text-neutral-300 leading-relaxed">

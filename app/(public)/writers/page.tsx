@@ -59,7 +59,7 @@ export default function Writers() {
 
   return (
     <Layout>
-      <Section className="pt-24 pb-8">
+      <Section className="pt-48 pb-8">
         <PageContainer>
           <div className="max-w-4xl">
             <h1 className="text-5xl font-bold text-white mb-2">

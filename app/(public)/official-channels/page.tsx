@@ -9,7 +9,7 @@ export default function OfficialChannels() {
             name: 'YouTube',
             description: 'Primary video archive and global release channel.',
             purpose: 'Official release publication, legacy archival, and multilingual visual distribution.',
-            url: 'https://youtube.com/@sufipulse',
+            url: 'https://www.youtube.com/@SufiPulse-USA',
             buttonText: 'Visit Channel'
         },
         {
@@ -44,14 +44,14 @@ export default function OfficialChannels() {
             name: 'Facebook',
             description: 'Community announcements and archival public updates.',
             purpose: 'Long-form community engagement and archival content sharing.',
-            url: 'https://facebook.com/sufipulse',
+            url: 'https://www.facebook.com/groups/1100263345262190',
             buttonText: 'Visit Facebook'
         }
     ];
 
     return (
         <Layout>
-            <Section className="pt-24 pb-12 bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-900">
+            <Section className="pt-24 pb-12 ">
                 <PageContainer>
                     <div className="max-w-5xl mx-auto text-center">
                         <div className="mb-6">

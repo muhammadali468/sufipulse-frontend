@@ -2,6 +2,7 @@ import { Users, ArrowRight, FileText, Lock, Database } from 'lucide-react';
 import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { Section } from '../../../components/layout/Section';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 export default function RoyaltyTransparency() {
     const allocationPrinciples = [
@@ -77,7 +78,7 @@ export default function RoyaltyTransparency() {
                             Royalty Transparency
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-8 border-b border-amber-400/20 pb-4 inline-block">
-                            Contributor Allocation & Documentation Framework
+                            {roleDisplayMap.royalty_transparency.mystical}
                         </p>
 
                         <div className="max-w-2xl">

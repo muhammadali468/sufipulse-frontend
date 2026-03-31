@@ -12,7 +12,7 @@ export default function OurNetwork() {
                             Our Network
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-8 border-b border-amber-400/20 pb-4 inline-block">
-                            Institutional Presence & Global Structure
+                            {roleDisplayMap.our_network.mystical}
                         </p>
 
                         <div className="max-w-2xl">

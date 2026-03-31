@@ -131,7 +131,7 @@ export default function Home() {
     <Layout>
       <Section background="midnight" spacing="spacious">
         <PageContainer>
-          <div className="max-w-5xl mx-auto text-center py-20">
+          <div className="max-w-5xl mx-auto text-center">
             <div className="mb-6">
               <span className="inline-block px-4 py-1.5 border border-[var(--color-gold)]/30 rounded-full text-[var(--text-sm)] text-[var(--color-gold)] uppercase tracking-wider font-medium">
                 Welcome

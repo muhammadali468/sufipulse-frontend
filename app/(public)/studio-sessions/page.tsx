@@ -7,6 +7,7 @@ import { Section } from '../../components/layout/Section';
 // import { Link } from 'react-router-dom';
 import { SessionRequestForm } from '../../components/studio/SessionRequestForm';
 import Link from 'next/link';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 export default function StudioSessions() {
     const [showInPersonForm, setShowInPersonForm] = useState(false);
@@ -78,7 +79,7 @@ export default function StudioSessions() {
                             Studio Sessions
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-8 border-b border-amber-400/20 pb-4 inline-block">
-                            Recording Access Framework
+                            {roleDisplayMap.studio_sessions.mystical}
                         </p>
 
                         <div className="max-w-2xl">

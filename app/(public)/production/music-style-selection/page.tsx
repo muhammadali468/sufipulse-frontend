@@ -4,6 +4,7 @@ import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { Section } from '../../../components/layout/Section';
 import { useState } from 'react';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 export default function MusicStyleSelection() {
     const [activeTab, setActiveTab] = useState('fundamentals');
@@ -363,7 +364,7 @@ export default function MusicStyleSelection() {
                             Sacred Music Theory Framework
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-8 border-b border-amber-400/20 pb-4 inline-block">
-                            Music Style Selection
+                            {roleDisplayMap.music_style_selection.mystical}
                         </p>
 
                         <div className="max-w-3xl">

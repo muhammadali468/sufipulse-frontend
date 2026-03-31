@@ -4,6 +4,7 @@ import { ArrowDown, Shield, FileCheck, Building2, Archive, Scale, Users, BookOpe
 import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { Section } from '../../../components/layout/Section';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 interface ExpandableSection {
     title: string;
@@ -189,7 +190,7 @@ export default function Mithaq() {
                             Mithaq
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-6 border-b border-amber-400/20 pb-4 inline-block">
-                            Constitutional Charter
+                            {roleDisplayMap.institutional_framework.mystical}
                         </p>
 
                         <div className="mt-8 max-w-3xl">

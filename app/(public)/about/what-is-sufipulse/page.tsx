@@ -4,6 +4,7 @@ import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { Section } from '../../../components/layout/Section';
 import { useState } from 'react';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 export default function AboutSufiPulse() {
     const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
@@ -121,7 +122,7 @@ export default function AboutSufiPulse() {
                             About
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-8 border-b border-amber-400/20 pb-4 inline-block">
-                            What is SufiPulse?
+                            What is SufiPulse? ({roleDisplayMap.what_is_sufipulse.mystical})
                         </p>
 
                         <div className="max-w-2xl">

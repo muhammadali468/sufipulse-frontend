@@ -2,6 +2,7 @@ import { FileCheck, ArrowRight, Shield, CheckCircle, AlertCircle } from 'lucide-
 import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { Section } from '../../../components/layout/Section';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 export default function MajlisENazr() {
   const responsibilities = [
@@ -71,7 +72,7 @@ export default function MajlisENazr() {
               Majlis-e-Nazr
             </h1>
             <p className="text-xl text-amber-400/90 mb-8 border-b border-amber-400/20 pb-4 inline-block">
-              Editorial Council
+              {roleDisplayMap.editor.mystical}
             </p>
 
             <div className="max-w-2xl">

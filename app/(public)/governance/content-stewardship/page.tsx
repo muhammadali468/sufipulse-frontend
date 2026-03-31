@@ -1,3 +1,4 @@
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { Section } from '../../../components/layout/Section';
@@ -20,7 +21,7 @@ export default function ContentStewardship() {
                             Content Stewardship
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-8 border-b border-amber-400/20 pb-4 inline-block">
-                            Linguistic & Thematic Oversight
+                            {roleDisplayMap.content_stewardship.mystical}
                         </p>
 
                         <div className="max-w-2xl">
