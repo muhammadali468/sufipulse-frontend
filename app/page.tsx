@@ -14,6 +14,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Loader from './components/ui/Loader';
 import { literaryArticles } from './data/literary-articles';
+import Image from 'next/image';
 
 interface FeaturedArticle {
   id: string;
@@ -101,33 +102,15 @@ export default function Home() {
           });
         }
 
-        const articlesAsPubs: Publication[] = literaryArticles.slice(0, 2).map(a => ({
-          id: a.id,
-          type: 'literary' as const,
-          title: a.title,
-          slug: a.slug,
-          published_at: a.published_at,
-          excerpt: a.excerpt
-        }));
-
-        // Prioritize: Latest Video first, then latest articles
-        const combined = [...music, ...articlesAsPubs].sort((a, b) => {
-          // If one is music and one is literary, put music first for the most recent check if close in date
+        // We only want music videos for latest releases
+        const combined = [...music].sort((a, b) => {
           return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
-        }).slice(0, 3);
+        }).slice(0, 2);
 
         setLatestPublications(combined);
       } catch (err) {
-        console.error(err);
-        const articlesAsPubs: Publication[] = literaryArticles.slice(0, 3).map(a => ({
-          id: a.id,
-          type: 'literary' as const,
-          title: a.title,
-          slug: a.slug,
-          published_at: a.published_at,
-          excerpt: a.excerpt
-        }));
-        setLatestPublications(articlesAsPubs);
+        console.error('Error fetching latest music releases:', err);
+        setLatestPublications([]);
       } finally {
         setPubsLoading(false);
       }
@@ -151,23 +134,26 @@ export default function Home() {
           <div className="max-w-5xl mx-auto text-center py-20">
             <div className="mb-6">
               <span className="inline-block px-4 py-1.5 border border-[var(--color-gold)]/30 rounded-full text-[var(--text-sm)] text-[var(--color-gold)] uppercase tracking-wider font-medium">
-                Est. 2024 — Registered Institution
+                Welcome
               </span>
             </div>
 
             <h1 className="text-[var(--text-4xl)] md:text-[64px] font-bold text-[var(--color-text-primary)] mb-6 leading-[1.1] tracking-tight">
-              The Institute for Sacred<br />Transmission & Economics
+              The House of Sacred<br />Word, Voice and Stewardship
             </h1>
 
             <p className="text-[var(--text-xl)] text-[var(--color-text-secondary)] max-w-3xl mx-auto mb-10 leading-[var(--leading-relaxed)] font-light">
-              A formally structured organization governing the creation, distribution, and economic stewardship of sacred kalam through multi-stakeholder oversight and transparent revenue systems.
+              SufiPulse Studio USA is a disciplined institution for the authorship, performance, production, review, and entrusted release of sacred expression through structured governance and transparent stewardship.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <Link href="/releases">
-                <PrimaryButton variant="primary" size="large">
-                  View Registry
-                </PrimaryButton>
+                <Image
+                  src="/sufitube-logo-v5.png"
+                  alt="Sufitube Logo"
+                  width={200}
+                  height={200}
+                />
               </Link>
               <Link href="/governance">
                 <PrimaryButton variant="outline" size="large">
@@ -201,18 +187,18 @@ export default function Home() {
       <Section background="slate" spacing="normal">
         <PageContainer>
           <div className="max-w-6xl mx-auto">
-            <div className="mb-16">
+            <div className="mb-16 sm:text-center">
               <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
                 Institutional Framework
               </div>
               <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
                 Governed Structure for Sacred Content
               </h2>
-              <div className="w-full">
-                <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
-                  SufiPulse operates under a comprehensive governance system with formal oversight mechanisms, transparent economic protocols, and institutional accountability standards.
-                </p>
-              </div>
+              <p className="inline text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
+                SufiPulse operates under a comprehensive governance system with formal oversight mechanisms, transparent economic protocols, and institutional accountability standards.
+              </p>
+              {/* <div className="w-full">
+              </div> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -368,14 +354,14 @@ export default function Home() {
       <Section background="slate" spacing="normal">
         <PageContainer>
           <div className="max-w-6xl mx-auto">
-            <div className="mb-16">
+            <div className="mb-16 sm:text-center">
               <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
                 Institutional Workflow
               </div>
               <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
                 Production Pipeline: Submission to Distribution
               </h2>
-              <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
+              <p className="inline text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
                 A standardized, multi-stage approval process governs all content from initial submission through public release.
               </p>
             </div>
@@ -444,14 +430,14 @@ export default function Home() {
 
       <Section background="midnight" spacing="normal">
         <PageContainer>
-          <div className="max-w-6xl mx-auto mb-12">
+          <div className="max-w-6xl mx-auto mb-12 sm:text-center">
             <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
               Registry Highlights
             </div>
             <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
               Recent Releases
             </h2>
-            <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-2xl leading-[var(--leading-relaxed)]">
+            <p className="inline text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-2xl leading-[var(--leading-relaxed)]">
               Curated selections from the institutional registry of approved and distributed works.
             </p>
           </div>
@@ -559,14 +545,14 @@ export default function Home() {
 
       <Section background="slate" spacing="normal">
         <PageContainer>
-          <div className="max-w-6xl mx-auto mb-12">
+          <div className="max-w-6xl mx-auto mb-12 sm:text-center">
             <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
               Literary Journal
             </div>
             <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
               Ahl-e-Tahreer Archive
             </h2>
-            <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-2xl leading-[var(--leading-relaxed)]">
+            <p className="inline text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-2xl leading-[var(--leading-relaxed)]">
               Essays, scholarly reflections, and written kalam from verified contributors under editorial oversight.
             </p>
           </div>
@@ -645,16 +631,18 @@ export default function Home() {
       <Section background="midnight" spacing="normal">
         <PageContainer>
           <div className="max-w-6xl mx-auto">
-            <div className="mb-12">
-              <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
-                Creative Ecosystem
+            <div className="sm:text-center">
+              <div className="mb-12">
+                <div className="inline-block px-3 py-1 bg-[var(--color-gold)]/10 border border-[var(--color-gold)]/30 rounded text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-widest font-semibold mb-4">
+                  Creative Ecosystem
+                </div>
+                <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
+                  Creative Contributors
+                </h2>
+                <p className="inline text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
+                  Join a community of verified writers, vocalists, producers, and literary contributors creating sacred content under institutional oversight.
+                </p>
               </div>
-              <h2 className="text-[var(--text-3xl)] md:text-[48px] font-bold text-[var(--color-text-primary)] mb-4 leading-[1.2]">
-                Creative Contributors
-              </h2>
-              <p className="text-[var(--text-lg)] text-[var(--color-text-secondary)] max-w-3xl leading-[var(--leading-relaxed)]">
-                Join a community of verified writers, vocalists, producers, and literary contributors creating sacred content under institutional oversight.
-              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -760,19 +748,26 @@ export default function Home() {
               </h2> */}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {latestPublications.map((pub) => {
                 const cardContent = (
                   <Card hoverable>
                     {pub.type === 'music' && (pub.artwork_url || pub.youtube_video_id) ? (
-                      <div className="aspect-square w-full overflow-hidden rounded mb-4">
-                        <img
-                          src={pub.artwork_url || `https://i.ytimg.com/vi/${pub.youtube_video_id}/hqdefault.jpg`}
-                          alt={pub.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          loading="lazy"
-                        />
-                      </div>
+                      // <div className="aspect-square w-full overflow-hidden rounded mb-4">
+                      //   <img
+                      //     src={pub.artwork_url || `https://i.ytimg.com/vi/${pub.youtube_video_id}/hqdefault.jpg`}
+                      //     alt={pub.title}
+                      //     className="w-full h-[90%] object-cover"
+                      //     loading="lazy"
+                      //   />
+                      // </div>
+                      <div
+                        className="w-full h-full p-36 bg-cover bg-center"
+                        style={{
+                          backgroundImage: `url(${pub.artwork_url || `https://i.ytimg.com/vi/${pub.youtube_video_id}/hqdefault.jpg`
+                            })`,
+                        }}
+                      />
                     ) : (
                       <div className="aspect-square w-full bg-gradient-to-br from-[var(--color-midnight)] to-[var(--color-slate)] mb-4 rounded flex items-center justify-center">
                         {pub.type === 'music' ? (
@@ -783,7 +778,7 @@ export default function Home() {
                       </div>
                     )}
 
-                    <div className="mb-2">
+                    <div className="my-2">
                       <span className="text-[var(--text-xs)] text-[var(--color-gold)] uppercase tracking-wider">
                         {pub.type === 'music' ? 'Studio Release' : 'Literary'}
                       </span>
