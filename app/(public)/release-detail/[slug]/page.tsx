@@ -279,7 +279,7 @@ export function Release() {
             <PageContainer>
                 <div className="max-w-7xl mx-auto">
                     {/* Admin Edit Button */}
-                    <div className="flex justify-end mb-4">
+                    {/* <div className="flex justify-end mb-4">
                         <Link
                             href={`/admin/release-credits/${release.id}`}
                             className="inline-flex items-center gap-2 px-4 py-2 text-sm text-neutral-400 hover:text-neutral-300 border border-neutral-800 hover:border-neutral-700 rounded transition-colors"
@@ -287,7 +287,7 @@ export function Release() {
                             <Edit className="w-4 h-4" />
                             Edit Production Credits
                         </Link>
-                    </div>
+                    </div> */}
 
                     {/* Hero Section */}
                     <div className="mb-12">
@@ -307,13 +307,13 @@ export function Release() {
                                 <h1 className="text-5xl md:text-6xl font-serif font-light text-neutral-100 leading-tight flex-1">
                                     {release.release_title}
                                 </h1>
-                                <Link
+                                {/* <Link
                                     href={`/admin/releases/${release.slug}/credits`}
                                     className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 rounded transition-colors text-sm"
                                 >
                                     <Edit className="w-4 h-4" />
                                     Edit Production Credits
-                                </Link>
+                                </Link> */}
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-neutral-400">
                                 <div className="flex items-center gap-2">
