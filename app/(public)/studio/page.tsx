@@ -226,19 +226,19 @@ export default function Studio() {
                                     <div className="flex flex-col gap-2">
                                         <div className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
-                                            {/* <p className="text-neutral-300 text-sm">Writers ({roleDisplayMap.writer.mystical})</p> */}
+                                            <p className="text-neutral-300 text-sm">Writers ({roleDisplayMap.writer.mystical})</p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
-                                            {/* <p className="text-neutral-300 text-sm">Vocalists ({roleDisplayMap.vocalist.mystical})</p> */}
+                                            <p className="text-neutral-300 text-sm">Vocalists ({roleDisplayMap.vocalist.mystical})</p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
-                                            {/* <p className="text-neutral-300 text-sm">Producers ({roleDisplayMap.engineer.mystical})</p> */}
+                                            <p className="text-neutral-300 text-sm">Producers ({roleDisplayMap.engineer.mystical})</p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
-                                            {/* <p className="text-neutral-300 text-sm">Studio ({roleDisplayMap.studio.mystical})</p> */}
+                                            <p className="text-neutral-300 text-sm">Studio ({roleDisplayMap.studio.mystical})</p>
                                         </div>
                                     </div>
                                 </div>

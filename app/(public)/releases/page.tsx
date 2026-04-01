@@ -39,7 +39,7 @@ export default function Releases() {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
-                const YOUTUBE_API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
+                const YOUTUBE_API_KEY = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || "AIzaSyCw34bUCxl_8S5R8I-380YyFOLDqpWL-R4";
                 const CHANNEL_ID = 'UCraDr3i5A3k0j7typ6tOOsQ';
 
                 const searchRes = await fetch(
