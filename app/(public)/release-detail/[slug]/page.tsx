@@ -38,7 +38,7 @@ export function Release() {
     const params = useParams();
     const slug = params?.slug as string;
     //   const { release, loading, error } = useRelease(slug || '');
-    const [activeTab, setActiveTab] = useState<'overview' | 'subtitles' | 'lyrics' | 'production' | 'adopt' | 'credits'>('credits');
+    const [activeTab, setActiveTab] = useState<'overview' | 'subtitles' | 'lyrics' | 'production' | 'adopt' | 'credits' | 'commentary' | 'sponsors'>('credits');
     const [showCopyModal, setShowCopyModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
@@ -442,12 +442,12 @@ export function Release() {
                         )}
 
                         {/* Tabs & Action Buttons */}
-                        <div className="flex flex-col lg:flex-row justify-between lg:items-end gap-6 mb-8 border-b border-neutral-800">
+                        <div className="flex flex-col lg:flex-row justify-between lg:items-end gap-4 mb-8 border-b border-neutral-800">
                             {/* Tabs Navigation */}
-                            <div className="flex gap-1 flex-wrap overflow-x-auto pb-0">
+                            <div className="flex gap-1 overflow-x-auto pb-0">
                                 <button
                                     onClick={() => setActiveTab('credits')}
-                                    className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'credits'
+                                    className={`px-4 sm:px-6 py-3 font-medium text-sm transition-all relative whitespace-nowrap ${activeTab === 'credits'
                                         ? 'text-neutral-100'
                                         : 'text-neutral-500 hover:text-neutral-300'
                                         }`}
@@ -476,7 +476,7 @@ export function Release() {
                                 {release.subtitles_available && release.subtitle_languages && release.subtitle_languages.length > 0 && (
                                     <button
                                         onClick={() => setActiveTab('subtitles')}
-                                        className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'subtitles'
+                                        className={`px-4 sm:px-6 py-3 font-medium text-sm transition-all relative whitespace-nowrap ${activeTab === 'subtitles'
                                             ? 'text-neutral-100'
                                             : 'text-neutral-500 hover:text-neutral-300'
                                             }`}
@@ -492,7 +492,7 @@ export function Release() {
                                 )}
                                 <button
                                     onClick={() => setActiveTab('lyrics')}
-                                    className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'lyrics'
+                                    className={`px-4 sm:px-6 py-3 font-medium text-sm transition-all relative whitespace-nowrap ${activeTab === 'lyrics'
                                         ? 'text-neutral-100'
                                         : 'text-neutral-500 hover:text-neutral-300'
                                         }`}
@@ -519,13 +519,43 @@ export function Release() {
                                 </button> */}
                                 <button
                                     onClick={() => setActiveTab('adopt')}
-                                    className={`px-4 sm:px-6 py-3 font-medium transition-all relative whitespace-nowrap ${activeTab === 'adopt'
+                                    className={`px-4 sm:px-6 py-3 font-medium text-sm transition-all relative whitespace-nowrap ${activeTab === 'adopt'
                                         ? 'text-neutral-100'
                                         : 'text-neutral-500 hover:text-neutral-300'
                                         }`}
                                 >
                                     Adopt this Song
                                     {activeTab === 'adopt' && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('commentary')}
+                                    className={`px-4 sm:px-6 py-3 font-medium text-sm transition-all relative whitespace-nowrap ${activeTab === 'commentary'
+                                        ? 'text-neutral-100'
+                                        : 'text-neutral-500 hover:text-neutral-300'
+                                        }`}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <MessageCircle className="w-4 h-4" />
+                                        Commentary
+                                    </span>
+                                    {activeTab === 'commentary' && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('sponsors')}
+                                    className={`px-4 sm:px-6 py-3 font-medium text-sm transition-all relative whitespace-nowrap ${activeTab === 'sponsors'
+                                        ? 'text-neutral-100'
+                                        : 'text-neutral-500 hover:text-neutral-300'
+                                        }`}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <Award className="w-4 h-4" />
+                                        Sponsors
+                                    </span>
+                                    {activeTab === 'sponsors' && (
                                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-100"></div>
                                     )}
                                 </button>
@@ -1102,6 +1132,81 @@ export function Release() {
                                             </div>
                                         </div>
                                     )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Commentary Tab */}
+                        {activeTab === 'commentary' && (
+                            <div className="pt-8">
+                                <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-8">
+                                    <h3 className="text-3xl font-serif font-light text-neutral-100 mb-8">Commentary & Insights</h3>
+
+                                    <div className="space-y-8">
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            <h4 className="text-xl font-medium text-amber-400 mb-3">Historical Context</h4>
+                                            <p className="text-neutral-300 leading-relaxed text-sm">
+                                                This piece reflects a deep historical tradition of poetry that emphasizes the inward journey and the necessity of stepping away from the self. Drawing from classical metaphors, it connects the modern listener with timeless themes of devotion and surrender.
+                                            </p>
+                                        </div>
+
+                                        <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-xl relative overflow-hidden group hover:border-amber-400/30 transition-colors">
+                                            <h4 className="text-xl font-medium text-amber-400 mb-3">Thematic Interpretation</h4>
+                                            <p className="text-neutral-300 leading-relaxed text-sm">
+                                                The core theme orbits around the dissolution of the ego (Fana). By using restrained instrumentation and a close-mic vocal approach, the focus remains fiercely locked on the lyrics, ensuring that the listener's attention is constantly brought back to the meaning rather than being distracted by spectacle.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Sponsors Tab */}
+                        {activeTab === 'sponsors' && (
+                            <div className="pt-8">
+                                <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-8">
+                                    <h3 className="text-3xl font-serif font-light text-neutral-100 mb-8">Our Sponsors</h3>
+
+                                    <p className="text-neutral-400 mb-8 max-w-2xl leading-relaxed">
+                                        We are deeply grateful for the generous support of our sponsors who make these releases possible and contribute to the preservation of sacred arts.
+                                    </p>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                        {/* Sponsor 1 */}
+                                        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 flex flex-col items-center justify-center aspect-square group hover:border-amber-400/30 transition-colors">
+                                            <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                <Award className="w-8 h-8 text-neutral-500 group-hover:text-amber-400 transition-colors" />
+                                            </div>
+                                            <p className="text-neutral-300 font-medium text-center">Global Trust</p>
+                                            <p className="text-neutral-500 text-xs mt-1 text-center">Foundational Partner</p>
+                                        </div>
+
+                                        {/* Sponsor 2 */}
+                                        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 flex flex-col items-center justify-center aspect-square group hover:border-amber-400/30 transition-colors">
+                                            <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                <Shield className="w-8 h-8 text-neutral-500 group-hover:text-amber-400 transition-colors" />
+                                            </div>
+                                            <p className="text-neutral-300 font-medium text-center">Heritage Arts</p>
+                                            <p className="text-neutral-500 text-xs mt-1 text-center">Cultural Sponsor</p>
+                                        </div>
+
+                                        {/* Sponsor 3 */}
+                                        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 flex flex-col items-center justify-center aspect-square group hover:border-amber-400/30 transition-colors">
+                                            <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                <Book className="w-8 h-8 text-neutral-500 group-hover:text-amber-400 transition-colors" />
+                                            </div>
+                                            <p className="text-neutral-300 font-medium text-center">Sufi Institute</p>
+                                            <p className="text-neutral-500 text-xs mt-1 text-center">Academic Partner</p>
+                                        </div>
+
+                                        {/* Placeholder for more */}
+                                        <div className="bg-neutral-900/50 border border-neutral-800 border-dashed rounded-xl p-6 flex flex-col items-center justify-center aspect-square hover:bg-neutral-900 transition-colors cursor-pointer group">
+                                            <div className="w-12 h-12 rounded-full border border-neutral-700 border-dashed flex items-center justify-center mb-3">
+                                                <span className="text-neutral-500 text-2xl group-hover:text-amber-400 font-light">+</span>
+                                            </div>
+                                            <p className="text-neutral-500 text-sm text-center group-hover:text-amber-400 transition-colors">Become a Sponsor</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
