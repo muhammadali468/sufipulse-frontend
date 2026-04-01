@@ -2,6 +2,7 @@ import { FileCheck, ArrowRight, Shield, Database } from 'lucide-react';
 import { Layout } from '../../../components/layout/Layout';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { Section } from '../../../components/layout/Section';
+import { roleDisplayMap } from '@/app/components/lib/roleDisplayMap';
 
 export default function DiwanEAmanat() {
     const mandatePoints = [
@@ -77,7 +78,7 @@ export default function DiwanEAmanat() {
                             Diwan-e-Amanat
                         </h1>
                         <p className="text-xl text-amber-400/90 mb-8 border-b border-amber-400/20 pb-4 inline-block">
-                            Registry Authority
+                            {roleDisplayMap.diwan_e_amanat.mystical}
                         </p>
 
                         <div className="max-w-2xl">
